@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerdeUrbano - API REST</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; }
+        header { background-color: #2e7d32; color: white; padding: 2rem; text-align: center; }
+        main { max-width: 800px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { margin: 0 0 10px 0; }
+        .btn { display: inline-block; padding: 10px 20px; color: white; background-color: #388e3c; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px; margin-top: 10px; }
+        .btn:hover { background-color: #1b5e20; }
+        ul { line-height: 1.8; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌱 Bienvenido a VerdeUrbano API</h1>
+        <p>Plataforma para el Blog y Comunidad de Jardinería y Huerta Urbana</p>
+    </header>
+    <main>
+        <h2>Documentación & Accesos Rápides</h2>
+        <p>Utiliza los siguientes enlaces para explorar y testear los endpoints de la API:</p>
+        <a href="/api/docs/" class="btn">Documentación Swagger</a>
+        <a href="/api/redoc/" class="btn">Documentación Redoc</a>
+        <a href="/admin/" class="btn" style="background-color: #455a64;">Panel de Admin</a>
+        <a href="/api/" class="btn" style="background-color: #00796b;">API Navegable</a>
+
+        <h3 style="margin-top: 30px;">Recursos Principales</h3>
+        <ul>
+            <li><strong>Artículos:</strong> <code>/api/articulos/</code></li>
+            <li><strong>Categorías:</strong> <code>/api/categorias/</code></li>
+            <li><strong>Plantas:</strong> <code>/api/plantas/</code></li>
+            <li><strong>Productos/Insumos:</strong> <code>/api/productos/</code></li>
+            <li><strong>Talleres y Eventos:</strong> <code>/api/talleres/</code></li>
+        </ul>
+    </main>
+</body>
+</html>
