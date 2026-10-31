@@ -2,77 +2,81 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Sprout, BookOpen, ShoppingBag, Calendar, User, UserPlus, LogOut } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { Sprout, BookOpen, ShoppingBag, Calendar, User, LogOut, LogIn } from 'lucide-react';
 
 export default function Navbar() {
-  const [usuario, setUsuario] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const userStored = localStorage.getItem('username');
-    setUsuario(userStored);
-  }, []);
+    // Leer el nombre de usuario guardado en localStorage al iniciar o cambiar de página
+    const user = localStorage.getItem('username');
+    setUsername(user);
+  }, [pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
-    setUsuario(null);
+    setUsername(null);
     router.push('/login');
   };
 
   return (
-    <header className="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center flex-wrap gap-3">
-        <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-wide hover:text-emerald-200 transition-colors">
-          <Sprout className="w-7 h-7 text-emerald-400" />
+    <nav className="bg-emerald-900 text-white shadow-md border-b border-emerald-800">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight text-emerald-100">
+          <Sprout className="w-6 h-6 text-emerald-400" />
           <span>VerdeUrbano</span>
         </Link>
 
-        <nav className="flex items-center gap-4 md:gap-6 font-medium text-sm md:text-base">
-          <Link href="/blog" className="flex items-center gap-1 hover:text-emerald-300 transition-colors">
+        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-emerald-100">
+          <Link href="/blog" className="flex items-center gap-1.5 hover:text-white transition-colors">
             <BookOpen className="w-4 h-4" /> Blog
           </Link>
-          <Link href="/huerta" className="flex items-center gap-1 hover:text-emerald-300 transition-colors">
+          <Link href="/huerta" className="flex items-center gap-1.5 hover:text-white transition-colors">
             <Sprout className="w-4 h-4" /> Mi Huerta
           </Link>
-          <Link href="/tienda" className="flex items-center gap-1 hover:text-emerald-300 transition-colors">
+          <Link href="/insumos" className="flex items-center gap-1.5 hover:text-white transition-colors">
             <ShoppingBag className="w-4 h-4" /> Insumos
           </Link>
-          <Link href="/talleres" className="flex items-center gap-1 hover:text-emerald-300 transition-colors">
+          <Link href="/talleres" className="flex items-center gap-1.5 hover:text-white transition-colors">
             <Calendar className="w-4 h-4" /> Talleres
           </Link>
-        </nav>
+        </div>
 
-        <div className="flex items-center gap-2.5">
-          {usuario ? (
+        <div className="flex items-center gap-3">
+          {username ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-emerald-200">Hola, @{usuario}</span>
+              <span className="text-xs font-semibold bg-emerald-800 px-3 py-1.5 rounded-lg text-emerald-200 border border-emerald-700 flex items-center gap-1">
+                <User className="w-3.5 h-3.5" /> Hola, @{username}
+              </span>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+                className="flex items-center gap-1 text-xs font-medium bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg transition-colors shadow"
               >
-                <LogOut className="w-4 h-4" /> Salir
+                <LogOut className="w-3.5 h-3.5" /> Salir
               </button>
             </div>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="flex items-center gap-1 bg-emerald-700 hover:bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+                className="flex items-center gap-1 text-xs font-semibold bg-emerald-800 hover:bg-emerald-700 text-emerald-100 px-3 py-1.5 rounded-lg transition-colors border border-emerald-700"
               >
-                <User className="w-4 h-4" /> Iniciar Sesión
+                <LogIn className="w-3.5 h-3.5" /> Ingresar
               </Link>
               <Link
                 href="/registro"
-                className="flex items-center gap-1 bg-white text-emerald-800 hover:bg-emerald-50 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+                className="text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-emerald-950 px-3 py-1.5 rounded-lg transition-colors"
               >
-                <UserPlus className="w-4 h-4" /> Registrarse
+                Registrarse
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
-    </header>
+    </nav>
   );
 }

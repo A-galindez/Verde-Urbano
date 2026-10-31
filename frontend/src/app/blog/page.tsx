@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { fetchAPI } from '../../lib/api';
-import { Heart, PlusCircle, Search, User, Calendar, Tag } from 'lucide-react';
+import Link from 'next/link';
+import { Heart, PlusCircle, Search, User, Calendar, Tag, ArrowLeft } from 'lucide-react';
 
 interface Articulo {
   id: number;
@@ -42,13 +43,24 @@ export default function BlogPage() {
   }, []);
 
   const handleLike = async (id: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Debes iniciar sesión para dar "Me Gusta".');
+      return;
+    }
+
     try {
-      const res = await fetchAPI(`/articulos/${id}/like/`, { method: 'POST' });
+      const res = await fetchAPI(`/articulos/${id}/like/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       setArticulos((prev) =>
         prev.map((art) => (art.id === id ? { ...art, me_gusta: res.me_gusta } : art))
       );
     } catch (err: any) {
-      alert('Debes iniciar sesión para dar me gusta o hubo un problema en el servidor.');
+      alert('Hubo un problema al registrar el Me Gusta.');
     }
   };
 
@@ -56,10 +68,19 @@ export default function BlogPage() {
     e.preventDefault();
     if (!titulo.trim() || !contenido.trim()) return;
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Debes iniciar sesión para publicar.');
+      return;
+    }
+
     setEnviando(true);
     try {
       await fetchAPI('/articulos/', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ titulo, contenido }),
       });
       setTitulo('');
@@ -67,7 +88,7 @@ export default function BlogPage() {
       setMostrarFormulario(false);
       await cargarArticulos();
     } catch (err: any) {
-      alert(err.message || 'Error al publicar. Asegúrate de haber iniciado sesión.');
+      alert(err.message || 'Error al publicar. Asegúrate de estar autenticado.');
     } finally {
       setEnviando(false);
     }
@@ -81,6 +102,14 @@ export default function BlogPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+      {/* Enlace o botón para volver a la página principal*/}
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800 font-medium mb-6 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" /> Volver atrás
+      </Link>
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-extrabold text-emerald-950">Blog Comunitario</h1>
