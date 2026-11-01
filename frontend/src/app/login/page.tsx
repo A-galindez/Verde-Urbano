@@ -13,27 +13,33 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setCargando(true);
 
     try {
-      // Petición al endpoint de JWT de Django para obtener el Token
       const res = await fetchAPI('/token/', {
         method: 'POST',
         body: JSON.stringify({ username, password }),
       });
 
-      if (res.access) {
+      if (res.access && res.refresh) {
         localStorage.setItem('token', res.access);
+        localStorage.setItem('refreshToken', res.refresh);
         localStorage.setItem('username', username);
+
         router.push('/blog');
+        router.refresh();
       } else {
         setError('Respuesta inválida del servidor.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Usuario o contraseña incorrectos.');
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Usuario o contraseña incorrectos.'
+      );
     } finally {
       setCargando(false);
     }
@@ -46,8 +52,14 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-14 h-14 bg-emerald-100 rounded-2xl text-emerald-800 mb-3">
             <Leaf className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-bold text-emerald-950">¡Hola de nuevo!</h2>
-          <p className="text-sm text-gray-500 mt-1">Ingresá a tu cuenta de VerdeUrbano</p>
+
+          <h2 className="text-2xl font-bold text-emerald-950">
+            ¡Hola de nuevo!
+          </h2>
+
+          <p className="text-sm text-gray-500 mt-1">
+            Ingresá a tu cuenta de VerdeUrbano
+          </p>
         </div>
 
         {error && (
@@ -58,12 +70,21 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Usuario</label>
+            <label
+              htmlFor="username"
+              className="block text-xs font-semibold text-gray-700 mb-1"
+            >
+              Usuario
+            </label>
+
             <div className="relative">
               <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+
               <input
+                id="username"
                 type="text"
                 required
+                autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Nombre de usuario"
@@ -73,12 +94,21 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Contraseña</label>
+            <label
+              htmlFor="password"
+              className="block text-xs font-semibold text-gray-700 mb-1"
+            >
+              Contraseña
+            </label>
+
             <div className="relative">
               <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+
               <input
+                id="password"
                 type="password"
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -99,7 +129,10 @@ export default function LoginPage() {
 
         <div className="text-center text-xs text-gray-500 pt-4 border-t border-gray-100">
           ¿Todavía no tenés cuenta?{' '}
-          <Link href="/registro" className="font-semibold text-emerald-700 hover:underline">
+          <Link
+            href="/registro"
+            className="font-semibold text-emerald-700 hover:underline"
+          >
             Registrate acá
           </Link>
         </div>
