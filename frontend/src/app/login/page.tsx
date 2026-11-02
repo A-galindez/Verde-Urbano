@@ -29,7 +29,7 @@ export default function LoginPage() {
         localStorage.setItem('refreshToken', res.refresh);
         localStorage.setItem('username', username);
 
-        router.push('/blog');
+        router.push('/');
         router.refresh();
       } else {
         setError('Respuesta inválida del servidor.');
@@ -140,3 +140,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

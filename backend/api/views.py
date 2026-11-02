@@ -143,13 +143,46 @@ class ProductoInsumoViewSet(viewsets.ModelViewSet):
 
 
 class TallerEventoViewSet(viewsets.ModelViewSet):
-    queryset = TallerEvento.objects.all()
+    queryset = TallerEvento.objects.all().order_by('fecha_evento')
     serializer_class = TallerEventoSerializer
+    filter_backends = [
+        filters.SearchFilter
+    ]
+    search_fields = [
+        'titulo',
+        'facilitador',
+        'lugar',
+        'descripcion'
+    ]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+
+        return [permissions.IsAdminUser()]
 
 
 class InscripcionEventoViewSet(viewsets.ModelViewSet):
     queryset = InscripcionEvento.objects.all()
     serializer_class = InscripcionEventoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return InscripcionEvento.objects.all()
+
+        return InscripcionEvento.objects.filter(
+            usuario=self.request.user
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [permissions.IsAdminUser()]
+
+        return [permissions.IsAuthenticated()]
 
 
 @api_view(['GET'])
