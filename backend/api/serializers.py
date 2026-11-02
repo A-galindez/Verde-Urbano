@@ -77,6 +77,13 @@ class PlantaSerializer(serializers.ModelSerializer):
 
 
 class HuertaUsuarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HuertaUsuario
+        fields = '__all__'
+        read_only_fields = ['usuario']
+
+
+class HuertaUsuarioListSerializer(serializers.ModelSerializer):
     planta_detalle = PlantaSerializer(
         source='planta',
         read_only=True

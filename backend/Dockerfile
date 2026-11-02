@@ -1,18 +1,16 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Instalar uv
 RUN pip install uv
 
-# Copiar archivos de dependencias
 COPY pyproject.toml uv.lock /app/
 
-# Instalar dependencias
-RUN uv sync --frozen
+RUN uv sync --frozen --no-install-project
 
-# Copiar el proyecto
 COPY . /app/
+
+RUN uv sync --frozen
 
 EXPOSE 8000
 
