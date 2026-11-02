@@ -1,8 +1,12 @@
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-(xw0z!_1l$xnv5^gi)*@fe21+_s6fsnsm%f9^(9*v)-!z!&l*v'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-cambiar-esta-clave-antes-de-publicar'
+)
 
 DEBUG = True
 
@@ -105,6 +109,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API REST para el Blog y Comunidad de Jardinería y Huerta Urbana',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'REDOC_DIST': 'https://cdn.jsdelivr.net/npm/redoc@2.5.2',
 }
 
 CORS_ALLOWED_ORIGINS = [
