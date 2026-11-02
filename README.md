@@ -274,15 +274,9 @@ El proyecto utiliza el panel de administración de Django para gestionar los mod
 
 Para acceder, se debe iniciar sesión con una cuenta que tenga permisos de administración.
 
-## Estado del proyecto
-
-El backend cuenta con los modelos, ViewSets, serializers, autenticación, permisos, filtros, paginación, documentación de la API y configuración Docker.
-
-Las funcionalidades deben verificarse mediante pruebas antes de considerar finalizada la entrega.
 
 ## Evidencias de funcionamiento
-
-En esta sección se incorporarán las capturas de pantalla solicitadas para la entrega:
+En esta sección se presentan las evidencias de funcionamiento del proyecto, incluyendo la ejecución del servidor, el panel de administración, la documentación de la API, sus endpoints y la ejecución mediante Docker.
 
 - Ejecución del servidor Django.
 - <img width="825" height="578" alt="Captura desde 2026-11-02 19-02-33" src="https://github.com/user-attachments/assets/4b0c591f-8f09-42a8-8b04-8d7eb901abfb" />
