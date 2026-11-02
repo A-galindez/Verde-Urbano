@@ -15,8 +15,8 @@ from .models import (
 from .serializers import (
     PerfilSerializer, CategoriaSerializer, EtiquetaSerializer,
     ArticuloListSerializer, ArticuloWriteSerializer, ComentarioSerializer,
-    PlantaSerializer, HuertaUsuarioSerializer, ProductoInsumoSerializer,
-    TallerEventoSerializer, InscripcionEventoSerializer
+    PlantaSerializer, HuertaUsuarioSerializer, HuertaUsuarioListSerializer,
+    ProductoInsumoSerializer, TallerEventoSerializer, InscripcionEventoSerializer
 )
 
 
@@ -25,18 +25,18 @@ def bienvenida(request):
 
 
 class PerfilViewSet(viewsets.ModelViewSet):
-    queryset = Perfil.objects.all()
+    queryset = Perfil.objects.all().order_by('id')
     serializer_class = PerfilSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):
-    queryset = Categoria.objects.all()
+    queryset = Categoria.objects.all().order_by('id')
     serializer_class = CategoriaSerializer
 
 
 class EtiquetaViewSet(viewsets.ModelViewSet):
-    queryset = Etiqueta.objects.all()
+    queryset = Etiqueta.objects.all().order_by('id')
     serializer_class = EtiquetaSerializer
 
 
@@ -53,7 +53,7 @@ class ArticuloViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action == 'list':
             return ArticuloListSerializer
         return ArticuloWriteSerializer
 
@@ -85,21 +85,26 @@ class ComentarioViewSet(viewsets.ModelViewSet):
 
 
 class PlantaViewSet(viewsets.ModelViewSet):
-    queryset = Planta.objects.all()
+    queryset = Planta.objects.all().order_by('id')
     serializer_class = PlantaSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['nombre_comun', 'nombre_cientifico']
 
 
 class HuertaUsuarioViewSet(viewsets.ModelViewSet):
-    queryset = HuertaUsuario.objects.all()
+    queryset = HuertaUsuario.objects.all().order_by('id')
     serializer_class = HuertaUsuarioSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return HuertaUsuarioListSerializer
+        return HuertaUsuarioSerializer
 
     def get_queryset(self):
         return HuertaUsuario.objects.filter(
             usuario=self.request.user
-        )
+        ).order_by('id')
 
     def perform_create(self, serializer):
         serializer.save(usuario=self.request.user)
@@ -126,7 +131,7 @@ class HuertaUsuarioViewSet(viewsets.ModelViewSet):
 
 
 class ProductoInsumoViewSet(viewsets.ModelViewSet):
-    queryset = ProductoInsumo.objects.all()
+    queryset = ProductoInsumo.objects.all().order_by('id')
     serializer_class = ProductoInsumoSerializer
     filter_backends = [
         DjangoFilterBackend,
@@ -143,7 +148,7 @@ class ProductoInsumoViewSet(viewsets.ModelViewSet):
 
 
 class TallerEventoViewSet(viewsets.ModelViewSet):
-    queryset = TallerEvento.objects.all().order_by('fecha_evento')
+    queryset = TallerEvento.objects.all().order_by('fecha_evento', 'id')
     serializer_class = TallerEventoSerializer
     filter_backends = [
         filters.SearchFilter
@@ -163,17 +168,17 @@ class TallerEventoViewSet(viewsets.ModelViewSet):
 
 
 class InscripcionEventoViewSet(viewsets.ModelViewSet):
-    queryset = InscripcionEvento.objects.all()
+    queryset = InscripcionEvento.objects.all().order_by('id')
     serializer_class = InscripcionEventoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            return InscripcionEvento.objects.all()
+            return InscripcionEvento.objects.all().order_by('id')
 
         return InscripcionEvento.objects.filter(
             usuario=self.request.user
-        )
+        ).order_by('id')
 
     def perform_create(self, serializer):
         serializer.save(usuario=self.request.user)
