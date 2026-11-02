@@ -301,7 +301,8 @@ En esta sección se incorporarán las capturas de pantalla solicitadas para la e
 <img width="1843" height="1003" alt="Captura desde 2026-11-02 19-19-04" src="https://github.com/user-attachments/assets/fab0e23d-531b-4dd3-b905-7fd29c6b3b96" />
 
 - Ejecución del backend con Docker.
-- 
+  <img width="1920" height="1080" alt="Captura desde 2026-11-02 19-37-12" src="https://github.com/user-attachments/assets/1b69866e-a70b-4716-baa0-85c44ac2c4af" />
+
 
 ## Proyecto académico
 
