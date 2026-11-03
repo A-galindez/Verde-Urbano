@@ -284,7 +284,7 @@ export default function TalleresPage() {
             type="text"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por título, facilitador, lugar o descripción..."
+            placeholder="Buscar por título, profesor, lugar o descripción..."
             className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
           />
         </div>
