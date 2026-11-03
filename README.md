@@ -1,4 +1,5 @@
 # Verde-Urbano — Backend
+INTEGRANTES : Tallone Eliana , Giordano Lucila , Agostini Lucia , Galíndez Abril
 
 ## Descripción del proyecto
 
