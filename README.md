@@ -298,7 +298,69 @@ En esta sección se presentan las evidencias de funcionamiento del proyecto, inc
 - Ejecución del backend con Docker.
   <img width="1920" height="1080" alt="Captura desde 2026-11-02 19-37-12" src="https://github.com/user-attachments/assets/1b69866e-a70b-4716-baa0-85c44ac2c4af" />
 
+## 🧪 Pruebas automatizadas
 
+Para verificar el funcionamiento del backend, se realizaron pruebas automatizadas utilizando Django TestCase y Django REST Framework.
+
+Las pruebas realizadas fueron:
+
+- Creación de categorías.
+- Creación de etiquetas.
+- Creación de plantas.
+- Creación de perfiles de usuario.
+- Consulta del listado de categorías mediante la API.
+- Verificación de permisos para crear categorías sin autenticación.
+
+### Ejecución de los tests
+
+Desde la carpeta del backend, ejecutar:
+
+bash
+uv run python manage.py test
+
+
+### Resultados
+
+Se ejecutaron *6 pruebas automatizadas y todas finalizaron correctamente*, sin presentar errores.
+
+- *Tests ejecutados:* 6
+- *Tests aprobados:* 6
+- *Errores:* 0
+- *Tiempo de ejecución:* 0,311 segundos
+
+### Captura de las pruebas
+
+<img width="866" height="651" alt="WhatsApp Image 2026-11-02 at 11 19 18 PM" src="https://github.com/user-attachments/assets/aa585366-0fa7-4844-b882-c1d66e3ec702" />
+
+
+---
+
+## ⚙️ Variables de entorno
+
+El backend utiliza la variable de entorno DJANGO_SECRET_KEY para configurar la clave secreta de Django.
+
+Esta configuración se encuentra en backend/config/settings.py.
+
+Para ejecutar el proyecto durante el desarrollo, se utiliza una clave predeterminada. En producción se debe configurar una clave secreta segura.
+
+La base de datos utilizada es *SQLite*.
+
+---
+
+## 📚 Repositorio y documentación de la API
+
+El backend está desarrollado con *Django REST Framework* y permite gestionar las distintas funcionalidades de Verde-Urbano.
+
+*Repositorio del proyecto:*
+
+https://github.com/A-galindez/Verde-Urbano
+
+*Documentación de la API:*
+
+- *Swagger:* http://127.0.0.1:8000/api/docs/
+- *ReDoc:* http://127.0.0.1:8000/api/redoc/
+
+La documentación permite consultar los endpoints disponibles y las operaciones que se pueden realizar mediante la API.
 ## Proyecto académico
 
 Trabajo desarrollado para la materia Ingeniería de Software.
