@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchAPI } from '../../lib/api';
 import Link from 'next/link';
 import { Heart, PlusCircle, Search, User, Calendar, Tag, ArrowLeft } from 'lucide-react';
@@ -26,24 +26,43 @@ export default function BlogPage() {
   const [contenido, setContenido] = useState('');
   const [enviando, setEnviando] = useState(false);
 
-  const cargarArticulos = async () => {
+  const cargarArticulos = useCallback(async (mostrarCarga = true) => {
     try {
-      setCargando(true);
+      if (mostrarCarga) {
+        setCargando(true);
+      }
+
+      setError('');
+
       const data = await fetchAPI('/articulos/');
-      setArticulos(Array.isArray(data) ? data : data.results || []);
-    } catch (err: any) {
-      setError(err.message || 'Error al conectar con la API del blog');
+
+      setArticulos(
+        Array.isArray(data)
+          ? data
+          : data.results || []
+      );
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Error al conectar con la API del blog'
+      );
     } finally {
       setCargando(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    cargarArticulos();
-  }, []);
+    const iniciarCarga = async () => {
+      await cargarArticulos();
+    };
+
+    void iniciarCarga();
+  }, [cargarArticulos]);
 
   const handleLike = async (id: number) => {
     const token = localStorage.getItem('token');
+
     if (!token) {
       alert('Debes iniciar sesión para dar "Me Gusta".');
       return;
@@ -53,42 +72,61 @@ export default function BlogPage() {
       const res = await fetchAPI(`/articulos/${id}/like/`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
+
       setArticulos((prev) =>
-        prev.map((art) => (art.id === id ? { ...art, me_gusta: res.me_gusta } : art))
+        prev.map((art) =>
+          art.id === id
+            ? { ...art, me_gusta: res.me_gusta }
+            : art
+        )
       );
-    } catch (err: any) {
+    } catch {
       alert('Hubo un problema al registrar el Me Gusta.');
     }
   };
 
   const handleSubmitArticulo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titulo.trim() || !contenido.trim()) return;
+
+    if (!titulo.trim() || !contenido.trim()) {
+      return;
+    }
 
     const token = localStorage.getItem('token');
+
     if (!token) {
       alert('Debes iniciar sesión para publicar.');
       return;
     }
 
     setEnviando(true);
+
     try {
       await fetchAPI('/articulos/', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ titulo, contenido }),
+        body: JSON.stringify({
+          titulo,
+          contenido,
+        }),
       });
+
       setTitulo('');
       setContenido('');
       setMostrarFormulario(false);
-      await cargarArticulos();
-    } catch (err: any) {
-      alert(err.message || 'Error al publicar. Asegúrate de estar autenticado.');
+
+      await cargarArticulos(false);
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : 'Error al publicar. Asegúrate de estar autenticado.'
+      );
     } finally {
       setEnviando(false);
     }
@@ -102,7 +140,6 @@ export default function BlogPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Enlace o botón para volver a la página principal*/}
       <Link
         href="/"
         className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800 font-medium mb-6 transition-colors"
@@ -112,11 +149,14 @@ export default function BlogPage() {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-emerald-950">Blog Comunitario</h1>
+          <h1 className="text-3xl font-extrabold text-emerald-950">
+            Blog Comunitario
+          </h1>
           <p className="text-gray-600 text-sm mt-1">
             Espacio de aprendizaje, consejos de siembra y experiencias huerteras.
           </p>
         </div>
+
         <button
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
           className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl shadow transition-colors text-sm self-start md:self-auto"
@@ -131,9 +171,14 @@ export default function BlogPage() {
           onSubmit={handleSubmitArticulo}
           className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md mb-8 space-y-4"
         >
-          <h2 className="text-lg font-bold text-emerald-900">Crear una nueva publicación</h2>
+          <h2 className="text-lg font-bold text-emerald-900">
+            Crear una nueva publicación
+          </h2>
+
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Título</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Título
+            </label>
             <input
               type="text"
               required
@@ -143,8 +188,11 @@ export default function BlogPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
             />
           </div>
+
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Contenido</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Contenido
+            </label>
             <textarea
               required
               rows={4}
@@ -154,6 +202,7 @@ export default function BlogPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
             />
           </div>
+
           <div className="flex justify-end gap-3">
             <button
               type="button"
@@ -162,6 +211,7 @@ export default function BlogPage() {
             >
               Cancelar
             </button>
+
             <button
               type="submit"
               disabled={enviando}
@@ -196,7 +246,7 @@ export default function BlogPage() {
         </div>
       )}
 
-      {!cargando && articulosFiltrados.length === 0 && (
+      {!cargando && !error && articulosFiltrados.length === 0 && (
         <div className="text-center py-12 bg-white rounded-2xl border border-gray-100 text-gray-500 text-sm">
           No se encontraron publicaciones. ¡Sé el primero en compartir algo!
         </div>
@@ -210,8 +260,10 @@ export default function BlogPage() {
           >
             <div className="flex items-center gap-3 text-xs text-gray-500 mb-3 flex-wrap">
               <span className="flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md">
-                <User className="w-3.5 h-3.5" /> @{art.autor_username || 'Anónimo'}
+                <User className="w-3.5 h-3.5" />
+                @{art.autor_username || 'Anónimo'}
               </span>
+
               <span className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
                 {new Date(art.fecha_creacion).toLocaleDateString('es-ES', {
@@ -220,14 +272,19 @@ export default function BlogPage() {
                   year: 'numeric',
                 })}
               </span>
+
               {art.categoria_nombre && (
                 <span className="flex items-center gap-1 text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md">
-                  <Tag className="w-3.5 h-3.5" /> {art.categoria_nombre}
+                  <Tag className="w-3.5 h-3.5" />
+                  {art.categoria_nombre}
                 </span>
               )}
             </div>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{art.titulo}</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {art.titulo}
+            </h2>
+
             <p className="text-gray-700 text-sm leading-relaxed mb-4 whitespace-pre-line">
               {art.contenido}
             </p>

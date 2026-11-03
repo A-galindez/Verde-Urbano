@@ -58,7 +58,7 @@ export default function MiHuertaPage() {
       );
 
       setRecordatorios(datosCalendario.calendario ?? []);
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
         err instanceof Error
           ? err.message
@@ -70,7 +70,11 @@ export default function MiHuertaPage() {
   }, []);
 
   useEffect(() => {
-    cargarHuerta();
+    const iniciarCarga = async () => {
+      await cargarHuerta();
+    };
+
+    void iniciarCarga();
   }, [cargarHuerta]);
 
   const eliminarPlanta = async (id: number, nombre: string) => {
@@ -91,7 +95,7 @@ export default function MiHuertaPage() {
       });
 
       await cargarHuerta();
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
         err instanceof Error
           ? err.message

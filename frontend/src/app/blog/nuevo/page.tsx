@@ -65,8 +65,12 @@ export default function NuevaPublicacionPage() {
 
       // Redirigir al blog para ver la publicación recién creada
       router.push('/blog');
-    } catch (err: any) {
-      setError(err.message || 'Error al guardar la publicación.');
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Error al guardar la publicación.'
+      );
     } finally {
       setCargando(false);
     }
