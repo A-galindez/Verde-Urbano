@@ -529,6 +529,6 @@ A continuación se muestran las principales pantallas y funcionalidades implemen
 
 ## Proyecto académico
 
-Trabajo desarrollado para la materia Ingeniería de Software.
+Trabajo desarrollado para las materias Programación III e Ingeniería de Software.
 
 Proyecto: Verde-Urbano.
