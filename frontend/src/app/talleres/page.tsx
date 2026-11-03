@@ -54,6 +54,7 @@ export default function TalleresPage() {
   const [eliminando, setEliminando] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [fechaActual, setFechaActual] = useState<number | null>(null);
 
   const cargarTalleres = useCallback(async () => {
     const datos = await fetchAPI('/talleres/');
@@ -95,7 +96,7 @@ export default function TalleresPage() {
             setEsAdministrador(false);
           }
         }
-      } catch (err) {
+      } catch (err: unknown) {
         setError(
           err instanceof Error
             ? err.message
@@ -106,8 +107,22 @@ export default function TalleresPage() {
       }
     }
 
-    cargarDatos();
+    void cargarDatos();
   }, [cargarTalleres, cargarInscripciones]);
+
+  useEffect(() => {
+    const actualizarFecha = () => {
+      setFechaActual(Date.now());
+    };
+
+    const timeout = window.setTimeout(actualizarFecha, 0);
+    const intervalo = window.setInterval(actualizarFecha, 60000);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.clearInterval(intervalo);
+    };
+  }, []);
 
   const formatearPrecio = (precio: string | number) => {
     const valor = Number(precio);
@@ -158,7 +173,7 @@ export default function TalleresPage() {
       ]);
 
       setMensaje(`¡Te inscribiste correctamente a "${taller.titulo}"!`);
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
         err instanceof Error
           ? err.message
@@ -190,7 +205,7 @@ export default function TalleresPage() {
       await cargarTalleres();
 
       setMensaje('El taller se eliminó correctamente.');
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
         err instanceof Error
           ? err.message
@@ -221,7 +236,11 @@ export default function TalleresPage() {
   };
 
   const tallerFinalizado = (fecha: string) => {
-    return new Date(fecha).getTime() <= Date.now();
+    if (fechaActual === null) {
+      return false;
+    }
+
+    return new Date(fecha).getTime() <= fechaActual;
   };
 
   return (
@@ -413,6 +432,7 @@ export default function TalleresPage() {
                           type="button"
                           onClick={() => inscribirse(taller)}
                           disabled={
+                            fechaActual === null ||
                             finalizado ||
                             sinCupos ||
                             procesando !== null

@@ -16,11 +16,20 @@ import {
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const user = localStorage.getItem('username');
-    setUsername(user);
+    const actualizarUsuario = () => {
+      const user = localStorage.getItem('username');
+      setUsername(user);
+    };
+
+    const timeout = window.setTimeout(actualizarUsuario, 0);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
   }, [pathname]);
 
   const handleLogout = () => {
