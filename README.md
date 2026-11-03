@@ -298,7 +298,7 @@ En esta sección se presentan las evidencias de funcionamiento del proyecto, inc
 - Ejecución del backend con Docker.
   <img width="1920" height="1080" alt="Captura desde 2026-11-02 19-37-12" src="https://github.com/user-attachments/assets/1b69866e-a70b-4716-baa0-85c44ac2c4af" />
 
-## 🧪 Pruebas automatizadas
+## Pruebas automatizadas
 
 Para verificar el funcionamiento del backend, se realizaron pruebas automatizadas utilizando Django TestCase y Django REST Framework.
 
@@ -335,7 +335,7 @@ Se ejecutaron *6 pruebas automatizadas y todas finalizaron correctamente*, sin p
 
 ---
 
-## ⚙️ Variables de entorno
+## Variables de entorno
 
 El backend utiliza la variable de entorno DJANGO_SECRET_KEY para configurar la clave secreta de Django.
 
@@ -347,7 +347,7 @@ La base de datos utilizada es *SQLite*.
 
 ---
 
-## 📚 Repositorio y documentación de la API
+## Repositorio y documentación de la API
 
 El backend está desarrollado con *Django REST Framework* y permite gestionar las distintas funcionalidades de Verde-Urbano.
 
@@ -361,8 +361,236 @@ https://github.com/A-galindez/Verde-Urbano
 - *ReDoc:* http://127.0.0.1:8000/api/redoc/
 
 La documentación permite consultar los endpoints disponibles y las operaciones que se pueden realizar mediante la API.
+
+---
+
+# **Verde-Urbano — Frontend**
+
+## **Tecnologías utilizadas**
+
+El frontend de Verde-Urbano fue desarrollado utilizando las siguientes tecnologías:
+
+- **Next.js:** framework utilizado para el desarrollo de la aplicación web.
+- **React:** biblioteca utilizada para construir los componentes de la interfaz.
+- **TypeScript:** lenguaje utilizado para desarrollar las funcionalidades.
+- **Tailwind CSS:** herramienta utilizada para el diseño y los estilos.
+- **Lucide React:** biblioteca de íconos.
+- **Vitest:** herramienta utilizada para realizar pruebas automatizadas.
+
+---
+
+## **Funcionalidades implementadas**
+
+### **Inicio**
+
+Es la página principal de Verde-Urbano. Desde ella, los usuarios pueden acceder a las diferentes secciones de la aplicación.
+
+### **Blog**
+
+Permite visualizar publicaciones relacionadas con la jardinería y las huertas urbanas.
+
+También cuenta con un formulario para crear nuevas publicaciones y compartir información con otros usuarios.
+
+### **Mi Huerta**
+
+Esta sección permite que los usuarios organicen las plantas de su huerta personal.
+
+Entre sus funcionalidades se encuentran:
+
+- Visualizar las plantas registradas.
+- Agregar nuevas plantas a la huerta.
+- Editar y eliminar plantas registradas.
+- Consultar un calendario de riego.
+- Acceder a información sobre los cuidados de cada planta.
+
+### **Insumos**
+
+Permite consultar y registrar productos relacionados con la jardinería y el mantenimiento de las huertas.
+
+Sus principales funcionalidades son:
+
+- Visualizar los insumos disponibles.
+- Buscar productos por nombre o descripción.
+- Filtrar productos por categoría.
+- Consultar el precio y el stock disponible.
+- Agregar nuevos insumos.
+- Editar y eliminar productos registrados.
+
+### **Talleres**
+
+Esta sección permite consultar y gestionar talleres y eventos relacionados con la jardinería.
+
+Sus funcionalidades incluyen:
+
+- Visualizar los talleres disponibles.
+- Buscar talleres por nombre, profesor, lugar o descripción.
+- Consultar fechas, horarios, precios y cupos disponibles.
+- Crear nuevos talleres.
+- Editar y eliminar talleres registrados.
+- Acceder a la opción de inscripción a talleres.
+
+### **Inicio de sesión y registro**
+
+La aplicación cuenta con formularios que permiten a los usuarios iniciar sesión y registrarse.
+
+Estas funcionalidades se conectan con el sistema de autenticación del backend.
+
+---
+
+## **Instalación y ejecución del frontend**
+
+Para ejecutar el frontend es necesario tener instalados Node.js y npm.
+
+### **1. Ingresar a la carpeta del frontend**
+
+Desde la carpeta principal del proyecto:
+
+```bash
+cd frontend
+```
+
+### **2. Instalar las dependencias**
+
+```bash
+npm install
+```
+
+### **3. Iniciar el servidor**
+
+```bash
+npm run dev
+```
+
+La aplicación se puede visualizar desde el navegador en:
+
+`http://localhost:3000`
+
+---
+
+## **Conexión con el backend**
+
+El frontend se comunica con la API REST desarrollada con Django REST Framework.
+
+La configuración de conexión se encuentra en el archivo:
+
+`frontend/src/lib/api.ts`
+
+La dirección utilizada para el desarrollo es:
+
+`http://127.0.0.1:8000/api`
+
+La conexión permite obtener y enviar información relacionada con las plantas, publicaciones, insumos, talleres y usuarios.
+
+### **Variables de entorno**
+
+La dirección de la API se encuentra configurada directamente en el archivo `frontend/src/lib/api.ts`.
+
+No es necesario crear un archivo `.env` para utilizar la configuración de desarrollo existente.
+
+---
+
+## **Pruebas automatizadas**
+
+Se implementaron pruebas automatizadas utilizando **Vitest** para verificar el funcionamiento de las solicitudes realizadas a la API.
+
+Las pruebas comprueban:
+
+- La obtención correcta del listado de plantas desde la API.
+- El manejo de errores cuando una solicitud falla.
+
+### **Ejecución de las pruebas**
+
+Desde la carpeta del frontend:
+
+```bash
+npm run test
+```
+
+### **Resultados obtenidos**
+
+Se ejecutaron **2 pruebas automatizadas**, ambas con resultados satisfactorios.
+
+- **Pruebas ejecutadas:** 2.
+- **Pruebas aprobadas:** 2.
+- **Errores:** 0.
+
+### **Verificación de compilación**
+
+Para comprobar que el proyecto compila correctamente:
+
+```bash
+npm run build
+```
+
+La compilación del frontend finalizó correctamente.
+
+---
+
+## **Capturas del frontend**
+
+A continuación se muestran las principales pantallas y funcionalidades implementadas en Verde-Urbano.
+
+### **1. Página de inicio**
+<img width="1854" height="1048" alt="inicio" src="https://github.com/user-attachments/assets/e15a631f-4cbb-4f9b-9f5a-f348a9740d41" />
+
+
+### **2. Blog - Listado de publicaciones**
+
+<img width="1854" height="1048" alt="1 blog" src="https://github.com/user-attachments/assets/ee06b17e-59e5-4a76-942a-c1978b85bd02" />
+
+
+### **3. Blog - Crear publicación**
+<img width="1854" height="1048" alt="2 blog" src="https://github.com/user-attachments/assets/7ac0de29-2f5a-4650-b7f9-8ca63a861c4e" />
+
+
+### **4. Mi Huerta - Plantas registradas y calendario de riego**
+
+<img width="1854" height="1048" alt="1 huerta" src="https://github.com/user-attachments/assets/ca774e44-4843-48cf-8a1b-ff9c05eb9164" />
+
+
+### **5. Mi Huerta - Agregar planta**
+<img width="1854" height="1048" alt="2 huerta" src="https://github.com/user-attachments/assets/87302ef5-d15f-460a-bee9-24ff3c26f7ff" />
+
+
+### **6. Insumos - Listado de productos**
+
+<img width="1854" height="1048" alt="1 insumos" src="https://github.com/user-attachments/assets/e675b193-6b5b-4eb3-b820-9b0fe733cd82" />
+
+
+### **7. Insumos - Agregar producto**
+
+<img width="1854" height="1048" alt="2 insumos" src="https://github.com/user-attachments/assets/7228608c-cd2c-4601-8d95-08d1674e77bb" />
+
+
+### **8. Talleres - Listado de talleres**
+
+<img width="1854" height="1048" alt="1 talleres" src="https://github.com/user-attachments/assets/68fbb286-1560-434c-8823-73f4c361ce31" />
+
+
+### **9. Talleres - Crear taller**
+<img width="1854" height="1048" alt="2 talleres" src="https://github.com/user-attachments/assets/0a3a63bf-2e55-4d81-b3b0-af60dc30890a" />
+
+
+### **10. Talleres - Taller registrado**
+
+<img width="1854" height="1048" alt="editar y eliminar los talleres" src="https://github.com/user-attachments/assets/a775094f-85de-492e-9968-ec4ca27c421e" />
+
+
+### **11. Inicio de sesión**
+
+<img width="1854" height="1048" alt="login inicio" src="https://github.com/user-attachments/assets/cedf5078-b3db-4f95-af86-982fa01cf3a5" />
+
+
+### **12. Registro de usuario**
+<img width="1854" height="1048" alt="login registro" src="https://github.com/user-attachments/assets/06d87393-6923-4216-a6ef-d50b942f201b" />
+
+
+### **13. Pruebas automatizadas del frontend**
+
+<img width="866" height="651" alt="test aprobado" src="https://github.com/user-attachments/assets/eb05579b-a65a-44ef-a9d8-3b673a7d7134" />
+
 ## Proyecto académico
 
-Trabajo desarrollado para la materia Ingeniería de Software.
+Trabajo desarrollado para las materias Programación III e Ingeniería de Software.
 
 Proyecto: Verde-Urbano.
