@@ -528,7 +528,7 @@ La compilación del frontend finalizó correctamente.
 
 ## **Capturas del frontend**
 
-A continuación se muestran las principales pantallas y funcionalidades implementadas en Verde-Urbano.
+A continuación se muestran las principales pantallas y funcionalidades implementadas.
 
 ### **1. Página de inicio**
 <img width="1854" height="1048" alt="inicio" src="https://github.com/user-attachments/assets/e15a631f-4cbb-4f9b-9f5a-f348a9740d41" />
