@@ -104,16 +104,16 @@ export async function fetchAPI(
     }
   }
 
-  if (!response.ok) {
+ if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
 
-    throw new Error(
-      typeof errorData.detail === 'string'
-        ? errorData.detail
-        : typeof errorData.message === 'string'
-          ? errorData.message
-          : 'Error en la petición a la API'
-    );
+    // Si errorData tiene campos específicos de Django (como 'email' o 'username'),
+    // los convertimos a string para que el componente pueda leerlos.
+    if (Object.keys(errorData).length > 0) {
+      throw new Error(JSON.stringify(errorData));
+    }
+
+    throw new Error('Error en la petición a la API');
   }
 
   if (response.status === 204) {
