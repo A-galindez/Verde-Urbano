@@ -3,7 +3,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchAPI } from '../../lib/api';
 import Link from 'next/link';
-import { Heart, PlusCircle, Search, User, Calendar, Tag, ArrowLeft, Pencil, Trash2 } from 'lucide-react';
+import { Heart, PlusCircle, Search, User, Calendar, Tag, ArrowLeft, Pencil, Trash2, MessageSquare } from 'lucide-react';
+
+interface Comentario {
+  id: number;
+  autor?: {
+    username: string;
+  };
+  contenido: string;
+  fecha_creacion: string;
+}
 
 interface Articulo {
   id: number;
@@ -15,6 +24,7 @@ interface Articulo {
   categoria_nombre?: string;
   fecha_creacion: string;
   me_gusta: number;
+  comentarios?: Comentario[];
 }
 
 export default function BlogPage() {
@@ -32,6 +42,9 @@ export default function BlogPage() {
   // Estados para controlar si el usuario está autenticado y su nombre
   const [estaAutenticado, setEstaAutenticado] = useState(false);
   const [usuarioActual, setUsuarioActual] = useState<string | null>(null);
+
+  // Estado para guardar el texto del comentario que se está escribiendo por cada artículo
+  const [comentariosTexto, setComentariosTexto] = useState<{ [key: number]: string }>({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -112,6 +125,68 @@ export default function BlogPage() {
       );
     } catch {
       alert('Hubo un problema al registrar el Me Gusta.');
+    }
+  };
+
+  // Enviar comentario a la API
+  const handleEnviarComentario = async (articuloId: number) => {
+    const texto = comentariosTexto[articuloId];
+    if (!texto || !texto.trim()) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Debes iniciar sesión para comentar.');
+      return;
+    }
+
+    try {
+      await fetchAPI('/comentarios/', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          articulo: articuloId,
+          contenido: texto,
+        }),
+      });
+
+      // Limpiar input de este artículo y recargar artículos para ver el nuevo comentario
+      setComentariosTexto({ ...comentariosTexto, [articuloId]: '' });
+      await cargarArticulos(false);
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : 'Error al enviar el comentario.'
+      );
+    }
+  };
+
+  // Eliminar un comentario propio
+  const handleEliminarComentario = async (comentarioId: number) => {
+    if (!confirm('¿Estás segura de que deseas eliminar este comentario?')) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      await fetchAPI(`/comentarios/${comentarioId}/`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      await cargarArticulos(false);
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : 'No tienes permiso para eliminar este comentario.'
+      );
     }
   };
 
@@ -343,9 +418,6 @@ export default function BlogPage() {
 
       <div className="space-y-6">
         {articulosFiltrados.map((art) => {
-          // Validamos si el usuario actual coincide con el autor del artículo
-          const esDueño = usuarioActual && art.autor?.username === usuarioActual;
-
           return (
             <article
               key={art.id}
@@ -376,27 +448,27 @@ export default function BlogPage() {
                 </div>
 
                 {/* Botones de Editar y Eliminar (Blindado y dinámico) */}
-{(usuarioActual === art.autor?.username || art.autor?.username === localStorage.getItem('username')) && (
-  <div className="flex items-center gap-2">
-    <button
-      onClick={() => iniciarEdicion(art)}
-      className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-md transition-colors"
-      title="Editar publicación"
-    >
-      <Pencil className="w-3.5 h-3.5" />
-      Editar
-    </button>
+                {(usuarioActual === art.autor?.username || art.autor?.username === localStorage.getItem('username')) && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => iniciarEdicion(art)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-md transition-colors"
+                      title="Editar publicación"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      Editar
+                    </button>
 
-    <button
-      onClick={() => handleEliminar(art.id)}
-      className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-md transition-colors"
-      title="Eliminar publicación"
-    >
-      <Trash2 className="w-3.5 h-3.5" />
-      Eliminar
-    </button>
-  </div>
-)}
+                    <button
+                      onClick={() => handleEliminar(art.id)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-md transition-colors"
+                      title="Eliminar publicación"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Eliminar
+                    </button>
+                  </div>
+                )}
               </div>
 
               <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -407,7 +479,8 @@ export default function BlogPage() {
                 {art.contenido}
               </p>
 
-              <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
+              {/* Botón Me Gusta */}
+              <div className="flex items-center gap-4 pt-3 border-t border-gray-100 mb-4">
                 <button
                   onClick={() => handleLike(art.id)}
                   className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-rose-600 transition-colors bg-gray-50 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
@@ -415,6 +488,65 @@ export default function BlogPage() {
                   <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
                   <span>{art.me_gusta} Me gusta</span>
                 </button>
+              </div>
+
+              {/* SECCIÓN DE COMENTARIOS */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5" /> Comentarios
+                </h4>
+
+                {/* Listado de comentarios */}
+                <div className="space-y-2 mb-3">
+                  {art.comentarios && art.comentarios.length > 0 ? (
+                    art.comentarios.map((c) => {
+                      // Verificamos si el usuario actual es el autor del comentario
+                      const esDueñoComentario = usuarioActual && c.autor?.username === usuarioActual;
+
+                      return (
+                        <div key={c.id} className="bg-gray-50 p-2.5 rounded-lg text-xs border border-gray-100 flex items-center justify-between gap-2">
+                          <div>
+                            <span className="font-bold text-emerald-800">@{c.autor?.username || 'Anónimo'}</span>: {c.contenido}
+                          </div>
+
+                          {/* Botón para eliminar el comentario propio */}
+                          {esDueñoComentario && (
+                            <button
+                              onClick={() => handleEliminarComentario(c.id)}
+                              className="text-rose-600 hover:text-rose-800 p-1 rounded transition-colors"
+                              title="Eliminar mi comentario"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-xs text-gray-400 italic">No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                  )}
+                </div>
+
+                {/* Formulario para agregar comentario */}
+                {estaAutenticado ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Escribe un comentario..."
+                      value={comentariosTexto[art.id] || ''}
+                      onChange={(e) => setComentariosTexto({ ...comentariosTexto, [art.id]: e.target.value })}
+                      className="flex-1 text-xs px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                    />
+                    <button
+                      onClick={() => handleEnviarComentario(art.id)}
+                      className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-3 py-2 rounded-lg transition-colors font-medium shadow-sm"
+                    >
+                      Comentar
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">Inicia sesión para dejar un comentario.</p>
+                )}
               </div>
             </article>
           );

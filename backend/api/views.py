@@ -57,7 +57,7 @@ class ArticuloViewSet(viewsets.ModelViewSet):
     queryset = Articulo.objects.all().order_by('-fecha_creacion')
     authentication_classes = [JWTAuthentication]
     
-    # 👇 AQUÍ ESTÁ EL CAMBIO: Una sola línea con ambos permisos juntos
+    # Una sola línea con ambos permisos juntos
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     
     filter_backends = [
@@ -98,6 +98,12 @@ class ArticuloViewSet(viewsets.ModelViewSet):
 class ComentarioViewSet(viewsets.ModelViewSet):
     queryset = Comentario.objects.all().order_by('-fecha_creacion')
     serializer_class = ComentarioSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        # Asigna automáticamente al usuario logueado como autor del comentario
+        serializer.save(autor=self.request.user)
 
 
 class PlantaViewSet(viewsets.ModelViewSet):
