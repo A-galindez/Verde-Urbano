@@ -143,7 +143,6 @@ export default function RegistroPage() {
           </button>
 
         </form>
-
         <div className="text-center text-xs text-gray-500 pt-4 border-t border-gray-100">
           ¿Ya tenés una cuenta?{' '}
 
