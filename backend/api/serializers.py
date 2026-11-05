@@ -68,6 +68,7 @@ class ArticuloWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Articulo
         fields = '__all__'
+        read_only_fields = ['autor']
 
 
 class PlantaSerializer(serializers.ModelSerializer):

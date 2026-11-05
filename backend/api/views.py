@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import (
     Perfil, Categoria, Etiqueta, Articulo,
@@ -40,8 +41,25 @@ class EtiquetaViewSet(viewsets.ModelViewSet):
     serializer_class = EtiquetaSerializer
 
 
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Permiso personalizado para permitir solo a los dueños de un objeto editarlo o borrarlo.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Las peticiones de lectura (GET, HEAD, OPTIONS) están permitidas para cualquiera
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        # La escritura o eliminación solo se permite si el autor del artículo es el usuario actual
+        return obj.autor == request.user
+
+
 class ArticuloViewSet(viewsets.ModelViewSet):
     queryset = Articulo.objects.all().order_by('-fecha_creacion')
+    authentication_classes = [JWTAuthentication]
+    
+    # 👇 AQUÍ ESTÁ EL CAMBIO: Una sola línea con ambos permisos juntos
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -50,10 +68,9 @@ class ArticuloViewSet(viewsets.ModelViewSet):
     filterset_fields = ['categoria', 'autor']
     search_fields = ['titulo', 'contenido']
     ordering_fields = ['fecha_creacion', 'me_gusta']
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve']:
             return ArticuloListSerializer
         return ArticuloWriteSerializer
 
@@ -77,7 +94,6 @@ class ArticuloViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK
         )
-
 
 class ComentarioViewSet(viewsets.ModelViewSet):
     queryset = Comentario.objects.all().order_by('-fecha_creacion')
