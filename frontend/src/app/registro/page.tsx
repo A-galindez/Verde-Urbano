@@ -4,31 +4,48 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UserPlus, User, Mail, Lock, Sprout } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { fetchAPI } from '../../lib/api';
+
+const registroSchema = z.object({
+  username: z.string()
+    .trim()
+    .min(3, 'El usuario debe tener al menos 3 caracteres'),
+
+  email: z.email('Ingresá un correo electrónico válido'),
+
+  password: z.string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres'),
+});
+
+type RegistroForm = z.infer<typeof registroSchema>;
 
 export default function RegistroPage() {
   const router = useRouter();
-
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [cargando, setCargando] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegistroForm>({
+    resolver: zodResolver(registroSchema),
+    defaultValues: {
+      username: '',
+      email: '',
+      password: '',
+    },
+  });
 
+  const onSubmit = async (data: RegistroForm) => {
     setError('');
-    setCargando(true);
 
     try {
       await fetchAPI('/registro/', {
         method: 'POST',
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-        }),
+        body: JSON.stringify(data),
       });
 
       router.push('/login');
@@ -39,9 +56,6 @@ export default function RegistroPage() {
           ? err.message
           : 'Error al registrar el usuario.'
       );
-
-    } finally {
-      setCargando(false);
     }
   };
 
@@ -69,10 +83,17 @@ export default function RegistroPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+          noValidate
+        >
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label
+              htmlFor="username"
+              className="block text-xs font-semibold text-gray-700 mb-1"
+            >
               Nombre de Usuario
             </label>
 
@@ -80,18 +101,28 @@ export default function RegistroPage() {
               <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
 
               <input
+                id="username"
                 type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                {...register('username')}
+                aria-invalid={!!errors.username}
                 placeholder="Tu usuario"
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all"
               />
             </div>
+
+            {errors.username && (
+              <p className="text-rose-600 text-xs mt-1">
+                {errors.username.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-xs font-semibold text-gray-700 mb-1"
+            >
               Correo Electrónico
             </label>
 
@@ -99,18 +130,28 @@ export default function RegistroPage() {
               <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
 
               <input
+                id="email"
                 type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                {...register('email')}
+                aria-invalid={!!errors.email}
                 placeholder="tu@email.com"
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all"
               />
             </div>
+
+            {errors.email && (
+              <p className="text-rose-600 text-xs mt-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-xs font-semibold text-gray-700 mb-1"
+            >
               Contraseña
             </label>
 
@@ -118,24 +159,31 @@ export default function RegistroPage() {
               <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
 
               <input
+                id="password"
                 type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                {...register('password')}
+                aria-invalid={!!errors.password}
                 placeholder="••••••••"
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all"
               />
             </div>
+
+            {errors.password && (
+              <p className="text-rose-600 text-xs mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           <button
             type="submit"
-            disabled={cargando}
+            disabled={isSubmitting}
             className="w-full flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-3 rounded-xl text-sm transition-colors shadow-md disabled:opacity-50 mt-2"
           >
             <UserPlus className="w-4 h-4" />
 
-            {cargando ? 'Creando cuenta...' : 'Registrarse'}
+            {isSubmitting ? 'Creando cuenta...' : 'Registrarse'}
           </button>
 
         </form>

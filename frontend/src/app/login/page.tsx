@@ -4,30 +4,51 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LogIn, User, Lock, Leaf } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { fetchAPI } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
+
+const loginSchema = z.object({
+  username: z.string().trim().min(1, 'Ingresá tu usuario'),
+  password: z.string().min(1, 'Ingresá tu contraseña'),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const { setUsername } = useAuth();
   const [error, setError] = useState('');
-  const [cargando, setCargando] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: LoginForm) => {
     setError('');
-    setCargando(true);
 
     try {
       const res = await fetchAPI('/token/', {
         method: 'POST',
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(data),
       });
 
       if (res.access && res.refresh) {
         localStorage.setItem('token', res.access);
         localStorage.setItem('refreshToken', res.refresh);
-        localStorage.setItem('username', username);
+        localStorage.setItem('username', data.username);
+
+        setUsername(data.username);
 
         router.push('/');
         router.refresh();
@@ -40,8 +61,6 @@ export default function LoginPage() {
           ? err.message
           : 'Usuario o contraseña incorrectos.'
       );
-    } finally {
-      setCargando(false);
     }
   };
 
@@ -68,7 +87,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
           <div>
             <label
               htmlFor="username"
@@ -83,14 +102,19 @@ export default function LoginPage() {
               <input
                 id="username"
                 type="text"
-                required
                 autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                {...register('username')}
+                aria-invalid={!!errors.username}
                 placeholder="Nombre de usuario"
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all"
               />
             </div>
+
+            {errors.username && (
+              <p className="text-rose-600 text-xs mt-1">
+                {errors.username.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -107,23 +131,28 @@ export default function LoginPage() {
               <input
                 id="password"
                 type="password"
-                required
                 autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register('password')}
+                aria-invalid={!!errors.password}
                 placeholder="••••••••"
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all"
               />
             </div>
+
+            {errors.password && (
+              <p className="text-rose-600 text-xs mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           <button
             type="submit"
-            disabled={cargando}
+            disabled={isSubmitting}
             className="w-full flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-3 rounded-xl text-sm transition-colors shadow-md disabled:opacity-50"
           >
             <LogIn className="w-4 h-4" />
-            {cargando ? 'Ingresando...' : 'Iniciar Sesión'}
+            {isSubmitting ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
 
@@ -140,4 +169,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
