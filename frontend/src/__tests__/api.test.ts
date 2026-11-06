@@ -50,4 +50,66 @@ describe('API de Verde-Urbano', () => {
       'Error del servidor'
     );
   });
+
+  it('debe enviar correctamente los datos de una planta', async () => {
+    const nuevaPlanta = {
+      nombre_comun: 'Lechuga',
+      nombre_cientifico: 'Lactuca sativa',
+    };
+
+    const fetchSimulado = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        id: 2,
+        ...nuevaPlanta,
+      }),
+    });
+
+    vi.stubGlobal('fetch', fetchSimulado);
+
+    const resultado = await fetchAPI('/plantas/', {
+      method: 'POST',
+      body: JSON.stringify(nuevaPlanta),
+    });
+
+    expect(resultado).toEqual({
+      id: 2,
+      ...nuevaPlanta,
+    });
+
+    expect(fetchSimulado).toHaveBeenCalledWith(
+      'http://127.0.0.1:8000/api/plantas/',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.any(Headers),
+        body: JSON.stringify(nuevaPlanta),
+      })
+    );
+
+    const headers = fetchSimulado.mock.calls[0][1].headers;
+    expect(headers.get('Content-Type')).toBe('application/json');
+  });
+
+  it('debe manejar correctamente una respuesta sin contenido', async () => {
+    const fetchSimulado = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+    });
+
+    vi.stubGlobal('fetch', fetchSimulado);
+
+    const resultado = await fetchAPI('/plantas/1/', {
+      method: 'DELETE',
+    });
+
+    expect(resultado).toBeNull();
+
+    expect(fetchSimulado).toHaveBeenCalledWith(
+      'http://127.0.0.1:8000/api/plantas/1/',
+      expect.objectContaining({
+        method: 'DELETE',
+      })
+    );
+  });
 });
