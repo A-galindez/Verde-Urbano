@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../context/AuthContext';
 import {
   Sprout,
   BookOpen,
@@ -15,30 +15,10 @@ import {
 
 export default function Navbar() {
   const router = useRouter();
-  const pathname = usePathname();
-
-  const [username, setUsername] = useState<string | null>(null);
-
-  useEffect(() => {
-    const actualizarUsuario = () => {
-      const user = localStorage.getItem('username');
-      setUsername(user);
-    };
-
-    const timeout = window.setTimeout(actualizarUsuario, 0);
-
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [pathname]);
+  const { username, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('username');
-
-    setUsername(null);
-
+    logout();
     router.push('/login');
     router.refresh();
   };
