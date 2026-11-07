@@ -7,13 +7,13 @@ import {
   Search,
   Package,
   Loader2,
-  Sprout,
   AlertCircle,
   Plus,
-  Pencil,
-  Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { fetchAPI } from '@/lib/api';
+import InsumoCard from '@/components/InsumoCard';
 
 interface Producto {
   id: number;
@@ -30,6 +30,13 @@ interface Usuario {
   is_staff: boolean;
 }
 
+interface RespuestaProductos {
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  results?: Producto[];
+}
+
 const categorias = [
   { valor: 'TODAS', nombre: 'Todas las categorías' },
   { valor: 'SEMILLAS', nombre: 'Semillas' },
@@ -41,22 +48,71 @@ const categorias = [
 export default function InsumosPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [busqueda, setBusqueda] = useState('');
+  const [busquedaAplicada, setBusquedaAplicada] = useState('');
   const [categoria, setCategoria] = useState('TODAS');
+
+  const [pagina, setPagina] = useState(1);
+  const [totalProductos, setTotalProductos] = useState(0);
+  const [haySiguiente, setHaySiguiente] = useState(false);
+  const [hayAnterior, setHayAnterior] = useState(false);
+
   const [esAdministrador, setEsAdministrador] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [eliminando, setEliminando] = useState<number | null>(null);
   const [error, setError] = useState('');
 
-  const cargarProductos = useCallback(async () => {
-    try {
-      const datos = await fetchAPI('/productos/');
+  // Esperar un momento antes de buscar para evitar
+  // una consulta al backend por cada tecla.
+  useEffect(() => {
+    const temporizador = setTimeout(() => {
+      setBusquedaAplicada(busqueda.trim());
+      setPagina(1);
+    }, 400);
 
-      setProductos(
-        Array.isArray(datos)
-          ? datos
-          : datos.results ?? []
+    return () => clearTimeout(temporizador);
+  }, [busqueda]);
+
+  // Consultar productos usando los filtros de Django.
+  const cargarProductos = useCallback(async () => {
+    setCargando(true);
+    setError('');
+
+    try {
+      const parametros = new URLSearchParams();
+
+      if (busquedaAplicada) {
+        parametros.set('search', busquedaAplicada);
+      }
+
+      if (categoria !== 'TODAS') {
+        parametros.set('categoria', categoria);
+      }
+
+      parametros.set('page', String(pagina));
+
+      const datos: Producto[] | RespuestaProductos = await fetchAPI(
+        `/productos/?${parametros.toString()}`
       );
+
+      if (Array.isArray(datos)) {
+        setProductos(datos);
+        setTotalProductos(datos.length);
+        setHaySiguiente(false);
+        setHayAnterior(false);
+      } else {
+        const resultados = datos.results ?? [];
+
+        setProductos(resultados);
+        setTotalProductos(datos.count ?? resultados.length);
+        setHaySiguiente(Boolean(datos.next));
+        setHayAnterior(Boolean(datos.previous));
+      }
     } catch (err) {
+      setProductos([]);
+      setTotalProductos(0);
+      setHaySiguiente(false);
+      setHayAnterior(false);
+
       setError(
         err instanceof Error
           ? err.message
@@ -65,36 +121,50 @@ export default function InsumosPage() {
     } finally {
       setCargando(false);
     }
-  }, []);
+  }, [busquedaAplicada, categoria, pagina]);
 
+  // Cargar productos cada vez que cambian los filtros
+  // o la página seleccionada.
   useEffect(() => {
-    async function cargarDatos() {
-      await cargarProductos();
+    void cargarProductos();
+  }, [cargarProductos]);
 
-      if (!localStorage.getItem('token')) {
+  // Verificar los permisos del usuario una sola vez.
+  useEffect(() => {
+    async function verificarAdministrador() {
+      const token = localStorage.getItem('token');
+      const refreshToken = localStorage.getItem('refreshToken');
+
+      if (!token && !refreshToken) {
         setEsAdministrador(false);
         return;
       }
 
       try {
         const usuario: Usuario = await fetchAPI('/mi-usuario/');
-        setEsAdministrador(usuario.is_staff);
+        setEsAdministrador(usuario.is_staff === true);
       } catch {
         setEsAdministrador(false);
       }
     }
 
-    cargarDatos();
-  }, [cargarProductos]);
+    void verificarAdministrador();
+  }, []);
 
+  // Eliminar productos solamente si el usuario
+  // tiene permisos de administrador.
   const eliminarProducto = async (producto: Producto) => {
-    if (!esAdministrador) return;
+    if (!esAdministrador || eliminando !== null) {
+      return;
+    }
 
     const confirmar = window.confirm(
       `¿Seguro que querés eliminar "${producto.nombre}"?`
     );
 
-    if (!confirmar) return;
+    if (!confirmar) {
+      return;
+    }
 
     setEliminando(producto.id);
     setError('');
@@ -104,7 +174,13 @@ export default function InsumosPage() {
         method: 'DELETE',
       });
 
-      await cargarProductos();
+      // Si eliminamos el último producto de una página,
+      // volvemos a la página anterior.
+      if (productos.length === 1 && pagina > 1) {
+        setPagina((paginaActual) => paginaActual - 1);
+      } else {
+        await cargarProductos();
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -116,18 +192,11 @@ export default function InsumosPage() {
     }
   };
 
-  const productosFiltrados = productos.filter((producto) => {
-    const coincideBusqueda =
-      producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      (producto.descripcion ?? '')
-        .toLowerCase()
-        .includes(busqueda.toLowerCase());
-
-    const coincideCategoria =
-      categoria === 'TODAS' || producto.categoria === categoria;
-
-    return coincideBusqueda && coincideCategoria;
-  });
+  // Cambiar la categoría y volver a la primera página.
+  const cambiarCategoria = (nuevaCategoria: string) => {
+    setCategoria(nuevaCategoria);
+    setPagina(1);
+  };
 
   const formatearPrecio = (precio: string | number) => {
     return Number(precio).toLocaleString('es-AR', {
@@ -137,7 +206,10 @@ export default function InsumosPage() {
   };
 
   const nombreCategoria = (valor: string) => {
-    return categorias.find((item) => item.valor === valor)?.nombre ?? valor;
+    return (
+      categorias.find((item) => item.valor === valor)?.nombre ??
+      valor
+    );
   };
 
   return (
@@ -165,6 +237,7 @@ export default function InsumosPage() {
         )}
       </div>
 
+      {/* Buscador y filtros */}
       <div className="bg-white border border-emerald-100 rounded-2xl p-5 shadow-sm mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -200,7 +273,7 @@ export default function InsumosPage() {
             <select
               id="categoria"
               value={categoria}
-              onChange={(e) => setCategoria(e.target.value)}
+              onChange={(e) => cambiarCategoria(e.target.value)}
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
             >
               {categorias.map((item) => (
@@ -213,6 +286,7 @@ export default function InsumosPage() {
         </div>
       </div>
 
+      {/* Indicador de carga */}
       {cargando && (
         <div className="flex items-center justify-center gap-3 py-16 text-emerald-700">
           <Loader2 className="w-6 h-6 animate-spin" />
@@ -220,6 +294,7 @@ export default function InsumosPage() {
         </div>
       )}
 
+      {/* Mensajes de error */}
       {error && (
         <div
           role="alert"
@@ -230,16 +305,17 @@ export default function InsumosPage() {
         </div>
       )}
 
+      {/* Listado de productos */}
       {!cargando && !error && (
         <>
           <p className="text-sm text-gray-500 mb-5">
-            {productosFiltrados.length}{' '}
-            {productosFiltrados.length === 1
+            {totalProductos}{' '}
+            {totalProductos === 1
               ? 'producto encontrado'
               : 'productos encontrados'}
           </p>
 
-          {productosFiltrados.length === 0 ? (
+          {productos.length === 0 ? (
             <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-10 text-center">
               <Package className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
 
@@ -253,77 +329,47 @@ export default function InsumosPage() {
             </div>
           ) : (
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {productosFiltrados.map((producto) => (
-                <article
+              {productos.map((producto) => (
+                <InsumoCard
                   key={producto.id}
-                  className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 flex flex-col"
-                >
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="bg-emerald-100 rounded-xl p-3">
-                      <Sprout className="w-8 h-8 text-emerald-700" />
-                    </div>
-
-                    <span className="text-xs font-semibold bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-full">
-                      {nombreCategoria(producto.categoria)}
-                    </span>
-                  </div>
-
-                  <h2 className="text-xl font-bold text-gray-900 mb-3">
-                    {producto.nombre}
-                  </h2>
-
-                  <p className="text-gray-600 text-sm mb-6 flex-1">
-                    {producto.descripcion || 'Sin descripción disponible.'}
-                  </p>
-
-                  <div className="border-t border-gray-100 pt-4">
-                    <p className="text-2xl font-bold text-emerald-800 mb-3">
-                      {formatearPrecio(producto.precio)}
-                    </p>
-
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="w-4 h-4 text-gray-500" />
-
-                      {producto.stock > 0 ? (
-                        <span className="text-gray-700">
-                          Stock disponible: <strong>{producto.stock}</strong>
-                        </span>
-                      ) : (
-                        <span className="text-red-600 font-semibold">
-                          Sin stock
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {esAdministrador && (
-                    <div className="flex gap-3 mt-5 pt-5 border-t border-gray-100">
-                      <Link
-                        href={`/insumos/${producto.id}/editar`}
-                        className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold px-3 py-2.5 rounded-xl transition-colors"
-                      >
-                        <Pencil className="w-4 h-4" />
-                        Editar
-                      </Link>
-
-                      <button
-                        type="button"
-                        onClick={() => eliminarProducto(producto)}
-                        disabled={eliminando === producto.id}
-                        className="flex-1 inline-flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 font-semibold px-3 py-2.5 rounded-xl transition-colors disabled:opacity-50"
-                      >
-                        {eliminando === producto.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                        Eliminar
-                      </button>
-                    </div>
-                  )}
-                </article>
+                  producto={producto}
+                  esAdministrador={esAdministrador}
+                  eliminando={eliminando}
+                  eliminarProducto={eliminarProducto}
+                  nombreCategoria={nombreCategoria}
+                  formatearPrecio={formatearPrecio}
+                />
               ))}
             </section>
+          )}
+
+          {/* Paginación */}
+          {(hayAnterior || haySiguiente) && (
+            <div className="flex items-center justify-center gap-4 mt-10">
+              <button
+                type="button"
+                onClick={() => setPagina((actual) => Math.max(1, actual - 1))}
+                disabled={!hayAnterior || cargando}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 rounded-xl text-emerald-800 hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Anterior
+              </button>
+
+              <span className="text-sm font-medium text-gray-600">
+                Página {pagina}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setPagina((actual) => actual + 1)}
+                disabled={!haySiguiente || cargando}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 rounded-xl text-emerald-800 hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Siguiente
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           )}
         </>
       )}
