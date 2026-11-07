@@ -12,7 +12,8 @@ import { fetchAPI } from '../../lib/api';
 const registroSchema = z.object({
   username: z.string()
     .trim()
-    .min(3, 'El usuario debe tener al menos 3 caracteres'),
+    .min(3, 'El usuario debe tener al menos 3 caracteres')
+    .regex(/^\S+$/, 'El usuario no puede contener espacios'),
 
   email: z.email('Ingresá un correo electrónico válido'),
 
@@ -51,11 +52,23 @@ export default function RegistroPage() {
       router.push('/login');
 
     } catch (err: unknown) {
-      setError(
+      const mensajeError =
         err instanceof Error
           ? err.message
-          : 'Error al registrar el usuario.'
-      );
+          : 'Error al registrar el usuario.';
+
+      try {
+        const errorData = JSON.parse(mensajeError);
+        const primerValor = Object.values(errorData)[0];
+
+        const textoLimpio = Array.isArray(primerValor)
+          ? String(primerValor[0])
+          : String(primerValor ?? mensajeError);
+
+        setError(textoLimpio);
+      } catch {
+        setError(mensajeError);
+      }
     }
   };
 
@@ -94,7 +107,7 @@ export default function RegistroPage() {
               htmlFor="username"
               className="block text-xs font-semibold text-gray-700 mb-1"
             >
-              Nombre de Usuario
+              Nombre de Usuario (sin espacios)
             </label>
 
             <div className="relative">
@@ -104,7 +117,11 @@ export default function RegistroPage() {
                 id="username"
                 type="text"
                 autoComplete="username"
-                {...register('username')}
+                {...register('username', {
+                  onChange: (e) => {
+                    e.target.value = e.target.value.replace(/\s/g, '');
+                  },
+                })}
                 aria-invalid={!!errors.username}
                 placeholder="Tu usuario"
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all"

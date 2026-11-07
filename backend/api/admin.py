@@ -27,10 +27,25 @@ class ArticuloAdmin(admin.ModelAdmin):
     search_fields = ('titulo', 'contenido')
     ordering = ('-fecha_creacion',)
 
+from django.contrib import admin
+from .models import Comentario
+
 @admin.register(Comentario)
 class ComentarioAdmin(admin.ModelAdmin):
-    list_display = ('autor', 'articulo', 'fecha_creacion')
+    list_display = ('id', 'articulo', 'autor', 'contenido', 'fecha_creacion')
+    list_filter = ('fecha_creacion', 'autor')
     search_fields = ('contenido', 'autor__username')
+
+    # 1. Deshabilita el botón y la opción de "Añadir comentario"
+    def has_add_permission(self, request):
+        return False
+
+    # 2. Hace que todos los campos sean de solo lectura cuando ves un comentario,
+    # evitando que los modifiquen, pero permitiendo verlos y usar el botón de eliminar.
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # Si ya existe el comentario
+            return ('articulo', 'autor', 'contenido', 'fecha_creacion')
+        return []
 
 @admin.register(Planta)
 class PlantaAdmin(admin.ModelAdmin):

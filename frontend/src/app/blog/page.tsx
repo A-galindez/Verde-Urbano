@@ -3,16 +3,28 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchAPI } from '../../lib/api';
 import Link from 'next/link';
-import { Heart, PlusCircle, Search, User, Calendar, Tag, ArrowLeft } from 'lucide-react';
+import { Heart, PlusCircle, Search, User, Calendar, Tag, ArrowLeft, Pencil, Trash2, MessageSquare } from 'lucide-react';
+
+interface Comentario {
+  id: number;
+  autor?: {
+    username: string;
+  };
+  contenido: string;
+  fecha_creacion: string;
+}
 
 interface Articulo {
   id: number;
   titulo: string;
   contenido: string;
-  autor_username: string;
+  autor?: {
+    username: string;
+  };
   categoria_nombre?: string;
   fecha_creacion: string;
   me_gusta: number;
+  comentarios?: Comentario[];
 }
 
 export default function BlogPage() {
@@ -22,9 +34,37 @@ export default function BlogPage() {
   const [error, setError] = useState('');
 
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [editandoId, setEditandoId] = useState<number | null>(null);
   const [titulo, setTitulo] = useState('');
   const [contenido, setContenido] = useState('');
   const [enviando, setEnviando] = useState(false);
+
+  // Estados para controlar si el usuario está autenticado y su nombre
+  const [estaAutenticado, setEstaAutenticado] = useState(false);
+  const [usuarioActual, setUsuarioActual] = useState<string | null>(null);
+
+  // Estado para guardar el texto del comentario que se está escribiendo por cada artículo
+  const [comentariosTexto, setComentariosTexto] = useState<{ [key: number]: string }>({});
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedUsername = localStorage.getItem('username');
+
+    setEstaAutenticado(!!token);
+    if (storedUsername) {
+      setUsuarioActual(storedUsername);
+    } else if (token) {
+      // Petición de respaldo a /mi_usuario/ por si el localStorage no lo tenía
+      fetchAPI('/mi_usuario/')
+        .then((data) => {
+          if (data && data.username) {
+            setUsuarioActual(data.username);
+            localStorage.setItem('username', data.username);
+          }
+        })
+        .catch(() => setUsuarioActual(null));
+    }
+  }, []);
 
   const cargarArticulos = useCallback(async (mostrarCarga = true) => {
     try {
@@ -88,6 +128,98 @@ export default function BlogPage() {
     }
   };
 
+  // Enviar comentario a la API
+  const handleEnviarComentario = async (articuloId: number) => {
+    const texto = comentariosTexto[articuloId];
+    if (!texto || !texto.trim()) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Debes iniciar sesión para comentar.');
+      return;
+    }
+
+    try {
+      await fetchAPI('/comentarios/', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          articulo: articuloId,
+          contenido: texto,
+        }),
+      });
+
+      // Limpiar input de este artículo y recargar artículos para ver el nuevo comentario
+      setComentariosTexto({ ...comentariosTexto, [articuloId]: '' });
+      await cargarArticulos(false);
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : 'Error al enviar el comentario.'
+      );
+    }
+  };
+
+  // Eliminar un comentario propio
+  const handleEliminarComentario = async (comentarioId: number) => {
+    if (!confirm('¿Estás segura de que deseas eliminar este comentario?')) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      await fetchAPI(`/comentarios/${comentarioId}/`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      await cargarArticulos(false);
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : 'No tienes permiso para eliminar este comentario.'
+      );
+    }
+  };
+
+  // Preparar el formulario para editar un artículo existente
+  const iniciarEdicion = (art: Articulo) => {
+    setEditandoId(art.id);
+    setTitulo(art.titulo);
+    setContenido(art.contenido);
+    setMostrarFormulario(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Eliminar un artículo mediante DELETE
+  const handleEliminar = async (id: number) => {
+    if (!confirm('¿Estás segura de que deseas eliminar esta publicación?')) {
+      return;
+    }
+
+    try {
+      await fetchAPI(`/articulos/${id}/`, {
+        method: 'DELETE',
+      });
+
+      setArticulos((prev) => prev.filter((art) => art.id !== id));
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : 'Error al eliminar la publicación.'
+      );
+    }
+  };
+
   const handleSubmitArticulo = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -105,19 +237,29 @@ export default function BlogPage() {
     setEnviando(true);
 
     try {
-      await fetchAPI('/articulos/', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          titulo,
-          contenido,
-        }),
-      });
+      if (editandoId) {
+        // Petición PUT para actualizar
+        await fetchAPI(`/articulos/${editandoId}/`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            titulo,
+            contenido,
+          }),
+        });
+      } else {
+        // Petición POST para crear
+        await fetchAPI('/articulos/', {
+          method: 'POST',
+          body: JSON.stringify({
+            titulo,
+            contenido,
+          }),
+        });
+      }
 
       setTitulo('');
       setContenido('');
+      setEditandoId(null);
       setMostrarFormulario(false);
 
       await cargarArticulos(false);
@@ -125,7 +267,7 @@ export default function BlogPage() {
       alert(
         err instanceof Error
           ? err.message
-          : 'Error al publicar. Asegúrate de estar autenticado.'
+          : 'Error al guardar la publicación.'
       );
     } finally {
       setEnviando(false);
@@ -157,9 +299,26 @@ export default function BlogPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl shadow transition-colors text-sm self-start md:self-auto"
+       <button
+          onClick={() => {
+            if (!estaAutenticado) {
+              alert('Debes iniciar sesión para poder crear una publicación.');
+              return;
+            }
+            if (mostrarFormulario && editandoId) {
+              setEditandoId(null);
+              setTitulo('');
+              setContenido('');
+            }
+            setMostrarFormulario(!mostrarFormulario);
+          }}
+          disabled={!estaAutenticado}
+          title="Debes iniciar sesión para crear una publicación"
+          className={`inline-flex items-center gap-2 font-semibold px-4 py-2.5 rounded-xl shadow transition-colors text-sm self-start md:self-auto ${
+            !estaAutenticado
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed hover:bg-gray-300 shadow-none"
+              : "bg-emerald-700 hover:bg-emerald-800 text-white"
+          }`}
         >
           <PlusCircle className="w-5 h-5" />
           {mostrarFormulario ? 'Cancelar' : 'Nueva Publicación'}
@@ -172,7 +331,7 @@ export default function BlogPage() {
           className="bg-white p-6 rounded-2xl border border-emerald-200 shadow-md mb-8 space-y-4"
         >
           <h2 className="text-lg font-bold text-emerald-900">
-            Crear una nueva publicación
+            {editandoId ? 'Editar publicación' : 'Crear una nueva publicación'}
           </h2>
 
           <div>
@@ -206,7 +365,12 @@ export default function BlogPage() {
           <div className="flex justify-end gap-3">
             <button
               type="button"
-              onClick={() => setMostrarFormulario(false)}
+              onClick={() => {
+                setMostrarFormulario(false);
+                setEditandoId(null);
+                setTitulo('');
+                setContenido('');
+              }}
               className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800"
             >
               Cancelar
@@ -217,7 +381,7 @@ export default function BlogPage() {
               disabled={enviando}
               className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-5 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
             >
-              {enviando ? 'Publicando...' : 'Publicar'}
+              {enviando ? 'Guardando...' : editandoId ? 'Actualizar cambios' : 'Publicar'}
             </button>
           </div>
         </form>
@@ -253,53 +417,140 @@ export default function BlogPage() {
       )}
 
       <div className="space-y-6">
-        {articulosFiltrados.map((art) => (
-          <article
-            key={art.id}
-            className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center gap-3 text-xs text-gray-500 mb-3 flex-wrap">
-              <span className="flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md">
-                <User className="w-3.5 h-3.5" />
-                @{art.autor_username || 'Anónimo'}
-              </span>
+        {articulosFiltrados.map((art) => {
+          return (
+            <article
+              key={art.id}
+              className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+                <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                  <span className="flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md">
+                    <User className="w-3.5 h-3.5" />
+                    @{art.autor?.username || 'Anónimo'} 
+                  </span>
 
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" />
-                {new Date(art.fecha_creacion).toLocaleDateString('es-ES', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {new Date(art.fecha_creacion).toLocaleDateString('es-ES', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
 
-              {art.categoria_nombre && (
-                <span className="flex items-center gap-1 text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md">
-                  <Tag className="w-3.5 h-3.5" />
-                  {art.categoria_nombre}
-                </span>
-              )}
-            </div>
+                  {art.categoria_nombre && (
+                    <span className="flex items-center gap-1 text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md">
+                      <Tag className="w-3.5 h-3.5" />
+                      {art.categoria_nombre}
+                    </span>
+                  )}
+                </div>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              {art.titulo}
-            </h2>
+                {/* Botones de Editar y Eliminar (Blindado y dinámico) */}
+                {(usuarioActual === art.autor?.username || art.autor?.username === localStorage.getItem('username')) && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => iniciarEdicion(art)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-md transition-colors"
+                      title="Editar publicación"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      Editar
+                    </button>
 
-            <p className="text-gray-700 text-sm leading-relaxed mb-4 whitespace-pre-line">
-              {art.contenido}
-            </p>
+                    <button
+                      onClick={() => handleEliminar(art.id)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-md transition-colors"
+                      title="Eliminar publicación"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Eliminar
+                    </button>
+                  </div>
+                )}
+              </div>
 
-            <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
-              <button
-                onClick={() => handleLike(art.id)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-rose-600 transition-colors bg-gray-50 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
-              >
-                <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-                <span>{art.me_gusta} Me gusta</span>
-              </button>
-            </div>
-          </article>
-        ))}
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                {art.titulo}
+              </h2>
+
+              <p className="text-gray-700 text-sm leading-relaxed mb-4 whitespace-pre-line">
+                {art.contenido}
+              </p>
+
+              {/* Botón Me Gusta */}
+              <div className="flex items-center gap-4 pt-3 border-t border-gray-100 mb-4">
+                <button
+                  onClick={() => handleLike(art.id)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-rose-600 transition-colors bg-gray-50 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
+                >
+                  <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                  <span>{art.me_gusta} Me gusta</span>
+                </button>
+              </div>
+
+              {/* SECCIÓN DE COMENTARIOS */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5" /> Comentarios
+                </h4>
+
+                {/* Listado de comentarios */}
+                <div className="space-y-2 mb-3">
+                  {art.comentarios && art.comentarios.length > 0 ? (
+                    art.comentarios.map((c) => {
+                      // Verificamos si el usuario actual es el autor del comentario
+                      const esDueñoComentario = usuarioActual && c.autor?.username === usuarioActual;
+
+                      return (
+                        <div key={c.id} className="bg-gray-50 p-2.5 rounded-lg text-xs border border-gray-100 flex items-center justify-between gap-2">
+                          <div>
+                            <span className="font-bold text-emerald-800">@{c.autor?.username || 'Anónimo'}</span>: {c.contenido}
+                          </div>
+
+                          {/* Botón para eliminar el comentario propio */}
+                          {esDueñoComentario && (
+                            <button
+                              onClick={() => handleEliminarComentario(c.id)}
+                              className="text-rose-600 hover:text-rose-800 p-1 rounded transition-colors"
+                              title="Eliminar mi comentario"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-xs text-gray-400 italic">No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                  )}
+                </div>
+
+                {/* Formulario para agregar comentario */}
+                {estaAutenticado ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Escribe un comentario..."
+                      value={comentariosTexto[art.id] || ''}
+                      onChange={(e) => setComentariosTexto({ ...comentariosTexto, [art.id]: e.target.value })}
+                      className="flex-1 text-xs px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                    />
+                    <button
+                      onClick={() => handleEnviarComentario(art.id)}
+                      className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-3 py-2 rounded-lg transition-colors font-medium shadow-sm"
+                    >
+                      Comentar
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">Inicia sesión para dejar un comentario.</p>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </div>
   );

@@ -36,11 +36,6 @@ class EtiquetaSerializer(serializers.ModelSerializer):
 
 class ComentarioSerializer(serializers.ModelSerializer):
     autor = UserSerializer(read_only=True)
-    autor_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
-        source='autor',
-        write_only=True
-    )
 
     class Meta:
         model = Comentario
@@ -48,26 +43,40 @@ class ComentarioSerializer(serializers.ModelSerializer):
             'id',
             'articulo',
             'autor',
-            'autor_id',
             'contenido',
             'fecha_creacion'
         ]
+        read_only_fields = ['autor', 'fecha_creacion']
 
 
 class ArticuloListSerializer(serializers.ModelSerializer):
     autor = UserSerializer(read_only=True)
     categoria = CategoriaSerializer(read_only=True)
     etiquetas = EtiquetaSerializer(many=True, read_only=True)
+    
+    # Agregamos esta línea para traer los comentarios asociados al artículo
+    comentarios = ComentarioSerializer(many=True, read_only=True)
 
     class Meta:
         model = Articulo
-        fields = '__all__'
+        fields = [
+            'id',
+            'titulo',
+            'contenido',
+            'autor',
+            'categoria',
+            'etiquetas',
+            'fecha_creacion',
+            'me_gusta',
+            'comentarios'
+        ]
 
 
 class ArticuloWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Articulo
         fields = '__all__'
+        read_only_fields = ['autor']
 
 
 class PlantaSerializer(serializers.ModelSerializer):
