@@ -34,10 +34,13 @@ INTEGRANTES : Tallone Eliana , Giordano Lucila , Agostini Lucia , Galíndez Abri
 - [Insumos](#insumos)
 - [Talleres](#talleres)
 - [Inicio de sesión y registro](#inicio-de-sesión-y-registro)
+- [Autenticación y permisos](#autenticación-y-permisos-1)
 - [Instalación y ejecución del frontend](#instalación-y-ejecución-del-frontend)
 - [Conexión con el backend](#conexión-con-el-backend)
+- [Variables de entorno](#variables-de-entorno-1)
 - [Pruebas automatizadas](#pruebas-automatizadas-1)
 - [Verificación de compilación](#verificación-de-compilación)
+- [Despliegue en producción](#despliegue-en-producción)
 - [Capturas del frontend](#capturas-del-frontend)
 - [Proyecto académico](#proyecto-académico)
 
@@ -345,36 +348,26 @@ En esta sección se presentan las evidencias de funcionamiento del proyecto, inc
 
 Para verificar el funcionamiento del backend, se realizaron pruebas automatizadas utilizando Django TestCase y Django REST Framework.
 
-Las pruebas realizadas fueron:
-
-- Creación de categorías.
-- Creación de etiquetas.
-- Creación de plantas.
-- Creación de perfiles de usuario.
-- Consulta del listado de categorías mediante la API.
-- Verificación de permisos para crear categorías sin autenticación.
+Las pruebas permiten comprobar el funcionamiento de los modelos, las solicitudes a la API, las validaciones y los permisos de acceso.
 
 ### Ejecución de los tests
 
-Desde la carpeta del backend, ejecutar:
+Desde la carpeta `backend`, ejecutar:
 
-bash
+```bash
 uv run python manage.py test
-
+```
 
 ### Resultados
 
-Se ejecutaron *6 pruebas automatizadas y todas finalizaron correctamente*, sin presentar errores.
+En la última ejecución verificada se realizaron **23 pruebas automatizadas**, todas con resultados satisfactorios.
 
-- *Tests ejecutados:* 6
-- *Tests aprobados:* 6
-- *Errores:* 0
-- *Tiempo de ejecución:* 0,311 segundos
-
+- **Tests ejecutados:** 23.
+- **Tests aprobados:** 23.
+- **Errores:** 0.
 ### Captura de las pruebas
 
-<img width="866" height="651" alt="WhatsApp Image 2026-11-02 at 11 19 18 PM" src="https://github.com/user-attachments/assets/aa585366-0fa7-4844-b882-c1d66e3ec702" />
-
+<img width="967" height="1088" alt="prueba test" src="https://github.com/user-attachments/assets/116f7db2-52d5-4697-ae56-29cae34aca8d" />
 ### Diagrama Entidad-Relación (ERD)
 <img width="1793" height="1456" alt="DIAGRAMA EFI" src="https://github.com/user-attachments/assets/d17fa256-f8ef-40fe-bb61-33fc0d646717" />
 
@@ -411,44 +404,63 @@ La documentación permite consultar los endpoints disponibles y las operaciones 
 
 # **Verde-Urbano — Frontend**
 
-## **Tecnologías utilizadas**
+## Tecnologías utilizadas
 
 El frontend de Verde-Urbano fue desarrollado utilizando las siguientes tecnologías:
 
-- **Next.js:** framework utilizado para el desarrollo de la aplicación web.
+- **Next.js 16:** framework utilizado para desarrollar la aplicación web.
 - **React:** biblioteca utilizada para construir los componentes de la interfaz.
 - **TypeScript:** lenguaje utilizado para desarrollar las funcionalidades.
 - **Tailwind CSS:** herramienta utilizada para el diseño y los estilos.
 - **Lucide React:** biblioteca de íconos.
+- **React Hook Form:** biblioteca utilizada para gestionar los formularios.
+- **Zod:** herramienta utilizada para validar los datos ingresados.
 - **Vitest:** herramienta utilizada para realizar pruebas automatizadas.
+- **npm:** gestor de paquetes utilizado para instalar dependencias y ejecutar el proyecto.
+- **Vercel:** plataforma utilizada para publicar el frontend.
 
 ---
 
-## **Funcionalidades implementadas**
+## Funcionalidades implementadas
 
-### **Inicio**
+### Inicio
 
 Es la página principal de Verde-Urbano. Desde ella, los usuarios pueden acceder a las diferentes secciones de la aplicación.
 
-### **Blog**
+### Blog
 
 Permite visualizar publicaciones relacionadas con la jardinería y las huertas urbanas.
 
-También cuenta con un formulario para crear nuevas publicaciones y compartir información con otros usuarios.
+Sus principales funcionalidades son:
 
-### **Mi Huerta**
+- Visualizar publicaciones.
+- Buscar artículos por título o contenido.
+- Crear nuevas publicaciones.
+- Editar y eliminar publicaciones propias.
+- Consultar los detalles de los artículos.
+- Agregar comentarios.
+- Interactuar con las publicaciones.
+
+Las operaciones se conectan con la API REST del backend.
+
+### Mi Huerta
 
 Esta sección permite que los usuarios organicen las plantas de su huerta personal.
 
 Entre sus funcionalidades se encuentran:
 
 - Visualizar las plantas registradas.
-- Agregar nuevas plantas a la huerta.
+- Agregar nuevas plantas desde el catálogo disponible.
+- Indicar la cantidad de plantas.
+- Registrar la fecha de plantación.
+- Agregar notas.
 - Editar y eliminar plantas registradas.
 - Consultar un calendario de riego.
 - Acceder a información sobre los cuidados de cada planta.
 
-### **Insumos**
+Los datos se guardan en el backend y están asociados al usuario autenticado.
+
+### Insumos
 
 Permite consultar y registrar productos relacionados con la jardinería y el mantenimiento de las huertas.
 
@@ -461,32 +473,57 @@ Sus principales funcionalidades son:
 - Agregar nuevos insumos.
 - Editar y eliminar productos registrados.
 
-### **Talleres**
+Las operaciones de administración están sujetas a los permisos del usuario.
+
+### Talleres
 
 Esta sección permite consultar y gestionar talleres y eventos relacionados con la jardinería.
 
 Sus funcionalidades incluyen:
 
 - Visualizar los talleres disponibles.
-- Buscar talleres por nombre, profesor, lugar o descripción.
-- Consultar fechas, horarios, precios y cupos disponibles.
+- Buscar talleres por nombre, facilitador, lugar o descripción.
+- Consultar fechas, precios y cupos disponibles.
 - Crear nuevos talleres.
 - Editar y eliminar talleres registrados.
-- Acceder a la opción de inscripción a talleres.
+- Acceder a las opciones de inscripción disponibles.
 
-### **Inicio de sesión y registro**
+Las operaciones de creación, edición y eliminación están restringidas a usuarios con permisos de administración.
+
+### Inicio de sesión y registro
 
 La aplicación cuenta con formularios que permiten a los usuarios iniciar sesión y registrarse.
 
-Estas funcionalidades se conectan con el sistema de autenticación del backend.
+Estas funcionalidades se conectan con el sistema de autenticación JWT del backend.
+
+Una vez iniciada la sesión, el usuario puede acceder a las funcionalidades que requieren autenticación.
 
 ---
 
-## **Instalación y ejecución del frontend**
+## Autenticación y permisos
+
+El frontend implementa un sistema de autenticación conectado con Django REST Framework.
+
+Se utiliza JWT para gestionar el acceso a los recursos protegidos.
+
+La aplicación cuenta con:
+
+- Registro de usuarios.
+- Inicio de sesión.
+- Cierre de sesión.
+- Control de acceso a determinadas páginas.
+- Restricciones según los permisos del usuario.
+- Protección de operaciones administrativas.
+
+Durante las pruebas se verificó que un usuario común puede consultar los talleres, pero no acceder al formulario de creación reservado para administradores.
+
+---
+
+## Instalación y ejecución del frontend
 
 Para ejecutar el frontend es necesario tener instalados Node.js y npm.
 
-### **1. Ingresar a la carpeta del frontend**
+### 1. Ingresar a la carpeta del frontend
 
 Desde la carpeta principal del proyecto:
 
@@ -494,13 +531,13 @@ Desde la carpeta principal del proyecto:
 cd frontend
 ```
 
-### **2. Instalar las dependencias**
+### 2. Instalar las dependencias
 
 ```bash
 npm install
 ```
 
-### **3. Iniciar el servidor**
+### 3. Iniciar el servidor
 
 ```bash
 npm run dev
@@ -510,40 +547,45 @@ La aplicación se puede visualizar desde el navegador en:
 
 `http://localhost:3000`
 
+### 4. Generar una compilación de producción
+
+```bash
+npm run build
+```
+
+Este comando permite comprobar que el proyecto compila correctamente.
+
 ---
 
-## **Conexión con el backend**
+## Conexión con el backend
 
 El frontend se comunica con la API REST desarrollada con Django REST Framework.
 
-La configuración de conexión se encuentra en el archivo:
+La configuración de conexión se encuentra principalmente en el archivo:
 
 `frontend/src/lib/api.ts`
 
-La dirección utilizada para el desarrollo es:
+Durante el desarrollo local, el backend se ejecuta normalmente en:
 
-`http://127.0.0.1:8000/api`
+`http://127.0.0.1:8000`
 
 La conexión permite obtener y enviar información relacionada con las plantas, publicaciones, insumos, talleres y usuarios.
 
-### **Variables de entorno**
+### Variables de entorno
 
-La dirección de la API se encuentra configurada directamente en el archivo `frontend/src/lib/api.ts`.
+La aplicación utiliza una configuración de conexión con la API que permite comunicarse con el backend.
 
-No es necesario crear un archivo `.env` para utilizar la configuración de desarrollo existente.
+Durante el desarrollo local se utiliza el servidor Django y, en producción, el backend publicado en Render.
 
 ---
 
-## **Pruebas automatizadas**
+## Pruebas automatizadas
 
-Se implementaron pruebas automatizadas utilizando **Vitest** para verificar el funcionamiento de las solicitudes realizadas a la API.
+Se implementaron pruebas automatizadas utilizando **Vitest** para verificar el funcionamiento de determinadas solicitudes realizadas a la API.
 
-Las pruebas comprueban:
+Las pruebas comprueban el comportamiento de las solicitudes, incluyendo respuestas correctas y manejo de errores.
 
-- La obtención correcta del listado de plantas desde la API.
-- El manejo de errores cuando una solicitud falla.
-
-### **Ejecución de las pruebas**
+### Ejecución de las pruebas
 
 Desde la carpeta del frontend:
 
@@ -551,15 +593,15 @@ Desde la carpeta del frontend:
 npm run test
 ```
 
-### **Resultados obtenidos**
+### Resultados obtenidos
 
-Se ejecutaron **2 pruebas automatizadas**, ambas con resultados satisfactorios.
+En la última ejecución verificada se realizaron **4 pruebas automatizadas**, todas con resultados satisfactorios.
 
-- **Pruebas ejecutadas:** 2.
-- **Pruebas aprobadas:** 2.
+- **Pruebas ejecutadas:** 4.
+- **Pruebas aprobadas:** 4.
 - **Errores:** 0.
 
-### **Verificación de compilación**
+### Verificación de compilación
 
 Para comprobar que el proyecto compila correctamente:
 
@@ -568,6 +610,22 @@ npm run build
 ```
 
 La compilación del frontend finalizó correctamente.
+
+---
+
+## Despliegue en producción
+
+El frontend de Verde-Urbano se encuentra publicado en Vercel.
+
+**Frontend:** https://verde-urbano-two.vercel.app/
+
+**Backend:** https://verde-urbano-backend.onrender.com/
+
+La aplicación publicada se conecta con la API REST para gestionar los datos del sistema.
+
+Durante las pruebas se verificó el funcionamiento de las principales secciones desde el entorno de producción.
+
+---
 
 ---
 
