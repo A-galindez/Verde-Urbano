@@ -90,4 +90,216 @@ Los datos se guardan en el backend y están asociados al usuario autenticado.
 
 ### Insumos
 
-Permite consultar y registrar productos relacionados con la jardinería y el mantenimiento
+Permite consultar y registrar productos relacionados con la jardinería y el mantenimiento de las huertas.
+
+Sus principales funcionalidades son:
+
+- Visualizar los insumos disponibles.
+- Buscar productos por nombre o descripción.
+- Filtrar productos por categoría.
+- Consultar el precio y el stock disponible.
+- Agregar nuevos insumos.
+- Editar y eliminar productos registrados.
+
+Las operaciones de administración están sujetas a los permisos del usuario.
+
+### Talleres
+
+Esta sección permite consultar y gestionar talleres y eventos relacionados con la jardinería.
+
+Sus funcionalidades incluyen:
+
+- Visualizar los talleres disponibles.
+- Buscar talleres por nombre, facilitador, lugar o descripción.
+- Consultar fechas, precios y cupos disponibles.
+- Crear nuevos talleres.
+- Editar y eliminar talleres registrados.
+- Acceder a las opciones de inscripción disponibles.
+
+Las operaciones de creación, edición y eliminación están restringidas a usuarios con permisos de administración.
+
+### Inicio de sesión y registro
+
+La aplicación cuenta con formularios que permiten a los usuarios iniciar sesión y registrarse.
+
+Estas funcionalidades se conectan con el sistema de autenticación JWT del backend.
+
+Una vez iniciada la sesión, el usuario puede acceder a las funcionalidades que requieren autenticación.
+
+---
+
+## Autenticación y permisos
+
+El frontend implementa un sistema de autenticación conectado con Django REST Framework.
+
+Se utiliza JWT para gestionar el acceso a los recursos protegidos.
+
+La aplicación cuenta con:
+
+- Registro de usuarios.
+- Inicio de sesión.
+- Cierre de sesión.
+- Control de acceso a determinadas páginas.
+- Restricciones según los permisos del usuario.
+- Protección de operaciones administrativas.
+
+Durante las pruebas se verificó que un usuario común puede consultar los talleres, pero no acceder al formulario de creación reservado para administradores.
+
+---
+
+## Instalación y ejecución del frontend
+
+Para ejecutar el frontend es necesario tener instalados Node.js y npm.
+
+### 1. Ingresar a la carpeta del frontend
+
+Desde la carpeta principal del proyecto:
+
+```bash
+cd frontend
+```
+
+### 2. Instalar las dependencias
+
+```bash
+npm install
+```
+
+### 3. Iniciar el servidor
+
+```bash
+npm run dev
+```
+
+La aplicación se puede visualizar desde el navegador en:
+
+`http://localhost:3000`
+
+### 4. Generar una compilación de producción
+
+```bash
+npm run build
+```
+
+Este comando permite comprobar que el proyecto compila correctamente.
+
+---
+
+## Conexión con el backend
+
+El frontend se comunica con la API REST desarrollada con Django REST Framework.
+
+La configuración de conexión se encuentra principalmente en el archivo:
+
+`frontend/src/lib/api.ts`
+
+Durante el desarrollo local, el backend se ejecuta normalmente en:
+
+`http://127.0.0.1:8000`
+
+La conexión permite obtener y enviar información relacionada con las plantas, publicaciones, insumos, talleres y usuarios.
+
+### Variables de entorno
+
+La aplicación utiliza una configuración de conexión con la API que permite comunicarse con el backend.
+
+En desarrollo local se utiliza el servidor Django y, en producción, el backend publicado en Render.
+
+---
+
+## Pruebas automatizadas
+
+Se implementaron pruebas automatizadas utilizando **Vitest** para verificar el funcionamiento de determinadas solicitudes realizadas a la API.
+
+Las pruebas comprueban el comportamiento de las solicitudes, incluyendo respuestas correctas y manejo de errores.
+
+### Ejecución de las pruebas
+
+Desde la carpeta del frontend:
+
+```bash
+npm run test
+```
+
+### Resultados obtenidos
+
+En la última ejecución verificada se realizaron **4 pruebas automatizadas**, todas con resultados satisfactorios.
+
+- **Pruebas ejecutadas:** 4.
+- **Pruebas aprobadas:** 4.
+- **Errores:** 0.
+
+### Verificación de compilación
+
+Para comprobar que el proyecto compila correctamente:
+
+```bash
+npm run build
+```
+
+La compilación del frontend finalizó correctamente.
+
+---
+
+## Despliegue en producción
+
+El frontend de Verde-Urbano se encuentra publicado en Vercel.
+
+**Frontend:** https://verde-urbano-two.vercel.app/
+
+**Backend:** https://verde-urbano-backend.onrender.com/
+
+La aplicación publicada se conecta con la API REST para gestionar los datos del sistema.
+
+Durante las pruebas se verificó el funcionamiento de las principales secciones desde el entorno de producción.
+
+---
+
+## Evidencias de funcionamiento
+
+Las capturas de pantalla se encuentran incorporadas en el README principal del repositorio.
+
+Se documentaron las siguientes pantallas:
+
+1. Página de inicio.
+2. Blog — Listado de publicaciones.
+3. Blog — Crear publicación.
+4. Mi Huerta — Plantas registradas y calendario de riego.
+5. Mi Huerta — Agregar planta.
+6. Insumos — Listado de productos.
+7. Insumos — Agregar producto.
+8. Talleres — Listado de talleres.
+9. Talleres — Crear taller.
+10. Talleres — Taller registrado.
+11. Inicio de sesión.
+12. Registro de usuario.
+13. Pruebas automatizadas del frontend.
+
+---
+
+## Estado del proyecto
+
+El frontend de Verde-Urbano se encuentra desarrollado, integrado con el backend y publicado en producción.
+
+Se implementaron las pantallas principales, la navegación, los formularios, las operaciones CRUD, la autenticación y las restricciones de acceso.
+
+También se realizaron pruebas automatizadas y se verificó la compilación del proyecto.
+
+Las principales funcionalidades fueron probadas tanto en desarrollo como en producción.
+
+---
+
+## Proyecto académico
+
+Proyecto desarrollado para las materias **Programación III e Ingeniería de Software**.
+
+**Nombre del proyecto:** Verde-Urbano.
+
+**Integrantes:**
+
+- Lucía Agostini.
+- Abril Galíndez.
+- Eliana Tallone.
+- Lucila Giordano.
+
+**Repositorio:** https://github.com/A-galindez/Verde-Urbano
