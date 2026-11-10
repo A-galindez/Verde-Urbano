@@ -1,10 +1,36 @@
-# Verde-Urbano — Backend
+# Verde-Urbano — Backend 🌱
+
+## Índice
+
+- [Descripción del proyecto](#descripción-del-proyecto)
+- [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Estructura del backend](#estructura-del-backend)
+- [Planificación de la base de datos](#planificación-de-la-base-de-datos)
+- [Relaciones principales](#relaciones-principales)
+- [API REST](#api-rest)
+- [Serializers](#serializers)
+- [Funcionalidades adicionales](#funcionalidades-adicionales)
+- [Autenticación y permisos](#autenticación-y-permisos)
+- [Filtros, búsquedas y paginación](#filtros-búsquedas-y-paginación)
+- [Instalación del proyecto](#instalación-del-proyecto)
+- [Ejecución con Docker](#ejecución-con-docker)
+- [Despliegue en producción](#despliegue-en-producción)
+- [Documentación de la API](#documentación-de-la-api)
+- [Panel de administración](#panel-de-administración)
+- [Pruebas automatizadas](#pruebas-automatizadas)
+- [Estado del proyecto](#estado-del-proyecto)
+- [Evidencias de funcionamiento](#evidencias-de-funcionamiento)
+- [Proyecto académico](#proyecto-académico)
+
+---
 
 ## Descripción del proyecto
 
 Verde-Urbano es una aplicación web orientada a la jardinería y las huertas urbanas. Su objetivo es brindar un espacio donde los usuarios puedan compartir conocimientos, consultar información sobre plantas, organizar sus huertas y conocer talleres relacionados con el cuidado del medioambiente.
 
 El backend está desarrollado con Django y Django REST Framework. Proporciona una API REST que permite gestionar usuarios, artículos, comentarios, plantas, huertas personales, productos, talleres e inscripciones.
+
+El proyecto cuenta con un frontend desarrollado en Next.js, conectado a la API mediante peticiones HTTP.
 
 ## Tecnologías utilizadas
 
@@ -18,25 +44,27 @@ El backend está desarrollado con Django y Django REST Framework. Proporciona un
 - django-cors-headers
 - uv
 - Docker
+- Gunicorn
+- Render para el despliegue del backend
+- Vercel para el despliegue del frontend
 
 ## Estructura del backend
 
-El proyecto está organizado principalmente en las siguientes carpetas:
+El proyecto está organizado principalmente en los siguientes archivos y carpetas:
 
-- `api/`: contiene los modelos, serializers, vistas, rutas y configuración del administrador.
+- `api/`: contiene los modelos, serializers, vistas, rutas, pruebas y configuración del administrador.
 - `config/`: contiene la configuración principal de Django.
 - `core/`: aplicación adicional del proyecto.
 - `manage.py`: permite ejecutar los comandos de Django.
 - `pyproject.toml`: define las dependencias.
 - `uv.lock`: registra las versiones de las dependencias.
 - `Dockerfile`: permite construir la imagen Docker.
-- `Docker-compose.yml`: contiene la configuración para ejecutar el backend con Docker Compose.
 
 ## Planificación de la base de datos
 
 La base de datos fue diseñada para organizar las distintas funcionalidades de Verde-Urbano.
 
-Se utilizaron 10 modelos propios, además del modelo `User` que proporciona Django.
+Se utilizaron **10 modelos propios**, además del modelo `User` que proporciona Django.
 
 ### Modelos
 
@@ -120,6 +148,12 @@ Relaciones: pertenece a un usuario y a un taller.
 
 El sistema evita que un mismo usuario tenga dos inscripciones para el mismo evento mediante una restricción de unicidad.
 
+### Diagrama entidad-relación (ERD)
+
+El diagrama entidad-relación del proyecto se encuentra incorporado en el README principal del repositorio.
+
+Representa los modelos de la base de datos y sus relaciones.
+
 ## Relaciones principales
 
 - `User` → `Perfil`: uno a uno.
@@ -135,9 +169,9 @@ El sistema evita que un mismo usuario tenga dos inscripciones para el mismo even
 
 ## API REST
 
-Se implementaron 10 ViewSets utilizando `ModelViewSet` de Django REST Framework.
+Se implementaron **10 ViewSets** utilizando `ModelViewSet` de Django REST Framework.
 
-Los ViewSets permiten realizar las operaciones CRUD correspondientes a cada modelo.
+Los ViewSets permiten realizar las operaciones CRUD correspondientes a cada modelo, según los permisos configurados.
 
 Los recursos disponibles son:
 
@@ -190,6 +224,8 @@ Algunas funcionalidades, como la administración de productos y talleres, requie
 
 Las huertas personales y las inscripciones utilizan restricciones asociadas al usuario autenticado.
 
+Durante las pruebas en producción se comprobó que los usuarios sin permisos de administración no pueden acceder a determinadas operaciones restringidas.
+
 ## Filtros, búsquedas y paginación
 
 La API incorpora:
@@ -212,7 +248,7 @@ La API incorpora:
 
 ### Descargar el repositorio
 
-Clonar el repositorio del proyecto y acceder a la carpeta `backend`.
+Clonar el repositorio de Verde-Urbano desde GitHub y acceder a la carpeta `backend`.
 
 ### Instalar dependencias
 
@@ -247,16 +283,34 @@ El backend también puede ejecutarse utilizando Docker.
 Desde la carpeta `backend`, construir la imagen:
 
 ```bash
-sudo docker build -t verde-urbano-backend .
+docker build -t verde-urbano-backend .
 ```
 
 Ejecutar el contenedor:
 
 ```bash
-sudo docker run --rm -p 8000:8000 verde-urbano-backend
+docker run --rm -p 8000:8000 verde-urbano-backend
 ```
 
-El servidor quedará disponible en el puerto 8000.
+El backend fue construido y probado correctamente utilizando Docker.
+
+## Despliegue en producción
+
+El proyecto se encuentra publicado y funcionando en producción.
+
+**Backend — Render**
+
+https://verde-urbano-backend.onrender.com/
+
+**Frontend — Vercel**
+
+https://verde-urbano-two.vercel.app/
+
+El backend utiliza Gunicorn para ejecutar la aplicación en el entorno de despliegue.
+
+Se configuraron las variables de entorno y los permisos CORS necesarios para permitir la comunicación entre el frontend y el backend.
+
+Durante las pruebas se verificó que la API responde correctamente y que las funcionalidades principales pueden utilizarse desde la aplicación publicada.
 
 ## Documentación de la API
 
@@ -274,25 +328,75 @@ El proyecto utiliza el panel de administración de Django para gestionar los mod
 
 Para acceder, se debe iniciar sesión con una cuenta que tenga permisos de administración.
 
+Desde el administrador se pueden gestionar los registros de la base de datos, incluyendo el catálogo de plantas.
+
+Durante las pruebas se agregó una planta desde el administrador y se comprobó que apareciera correctamente en el formulario de Mi Huerta.
+
+## Pruebas automatizadas
+
+Se realizaron pruebas automatizadas para comprobar el funcionamiento del backend.
+
+### Ejecución de las pruebas
+
+Desde la carpeta `backend`, ejecutar:
+
+```bash
+uv run python manage.py test api core
+```
+
+### Resultados
+
+- **Pruebas ejecutadas:** 23.
+- **Pruebas aprobadas:** 23.
+- **Errores:** 0.
+
+Las pruebas permitieron verificar diferentes funcionalidades de la API y su comportamiento.
+
+También se ejecutaron las pruebas automatizadas del frontend mediante Vitest, con **4 pruebas aprobadas**.
+
 ## Estado del proyecto
 
-El backend cuenta con los modelos, ViewSets, serializers, autenticación, permisos, filtros, paginación, documentación de la API y configuración Docker.
+El backend de Verde-Urbano se encuentra finalizado y funcionando.
 
-Las funcionalidades deben verificarse mediante pruebas antes de considerar finalizada la entrega.
+Se implementaron los modelos, ViewSets, serializers, autenticación JWT, permisos, filtros, búsquedas, paginación, documentación Swagger y ReDoc, y configuración Docker.
+
+Se verificó el funcionamiento de la API en producción mediante Render y su conexión con el frontend publicado en Vercel.
+
+Las funcionalidades principales fueron probadas correctamente, incluyendo:
+
+- Registro e inicio de sesión.
+- Permisos de usuario.
+- Creación, edición y eliminación de publicaciones.
+- Comentarios en el blog.
+- Gestión de plantas y huertas personales.
+- Gestión de insumos.
+- Gestión de talleres.
 
 ## Evidencias de funcionamiento
 
-En esta sección se incorporarán las capturas de pantalla solicitadas para la entrega:
+Las capturas de pantalla del proyecto se encuentran incorporadas en el README principal del repositorio.
 
-- Ejecución del servidor Django.
+Se incluyen evidencias de:
+
+- Ejecución y pruebas del backend.
 - Panel de administración.
-- Documentación Swagger.
-- API navegable.
-- Ejemplos de endpoints.
-- Ejecución del backend con Docker.
+- Documentación de la API.
+- Funcionalidades del frontend.
+- Blog y publicaciones.
+- Mi Huerta.
+- Insumos.
+- Talleres.
+- Registro e inicio de sesión.
+- Pruebas automatizadas.
+
+El README principal también contiene el diagrama entidad-relación de la base de datos.
 
 ## Proyecto académico
 
-Trabajo desarrollado para la materia Ingeniería de Software.
+Trabajo desarrollado para la materia **Ingeniería de Software**.
 
-Proyecto: Verde-Urbano.
+**Proyecto:** Verde-Urbano.
+
+**Repositorio:** https://github.com/A-galindez/Verde-Urbano
+
+**Estado:** Desarrollo y pruebas principales finalizados.
