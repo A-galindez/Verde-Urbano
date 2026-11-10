@@ -1,5 +1,48 @@
-# Verde-Urbano — Backend
+# Verde-Urbano
 INTEGRANTES : Tallone Eliana , Giordano Lucila , Agostini Lucia , Galíndez Abril
+
+## Índice
+
+### Backend
+- [Descripción del proyecto](#descripción-del-proyecto)
+- [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Estructura del backend](#estructura-del-backend)
+- [Planificación de la base de datos](#planificación-de-la-base-de-datos)
+- [Modelos](#modelos)
+- [Relaciones principales](#relaciones-principales)
+- [API REST](#api-rest)
+- [Serializers](#serializers)
+- [Funcionalidades adicionales](#funcionalidades-adicionales)
+- [Autenticación y permisos](#autenticación-y-permisos)
+- [Filtros, búsquedas y paginación](#filtros-búsquedas-y-paginación)
+- [Instalación del proyecto](#instalación-del-proyecto)
+- [Ejecución con Docker](#ejecución-con-docker)
+- [Documentación de la API](#documentación-de-la-api)
+- [Panel de administración](#panel-de-administración)
+- [Evidencias de funcionamiento](#evidencias-de-funcionamiento)
+- [Pruebas automatizadas](#pruebas-automatizadas)
+- [Variables de entorno](#variables-de-entorno)
+- [Repositorio y documentación de la API](#repositorio-y-documentación-de-la-api)
+
+### Frontend
+- [Verde-Urbano — Frontend](#verde-urbano--frontend)
+- [Tecnologías utilizadas](#tecnologías-utilizadas-1)
+- [Funcionalidades implementadas](#funcionalidades-implementadas)
+- [Inicio](#inicio)
+- [Blog](#blog)
+- [Mi Huerta](#mi-huerta)
+- [Insumos](#insumos)
+- [Talleres](#talleres)
+- [Inicio de sesión y registro](#inicio-de-sesión-y-registro)
+- [Instalación y ejecución del frontend](#instalación-y-ejecución-del-frontend)
+- [Conexión con el backend](#conexión-con-el-backend)
+- [Pruebas automatizadas](#pruebas-automatizadas-1)
+- [Verificación de compilación](#verificación-de-compilación)
+- [Capturas del frontend](#capturas-del-frontend)
+- [Proyecto académico](#proyecto-académico)
+
+---
+# Verde-Urbano — Backend
 
 ## Descripción del proyecto
 
@@ -332,6 +375,8 @@ Se ejecutaron *6 pruebas automatizadas y todas finalizaron correctamente*, sin p
 
 <img width="866" height="651" alt="WhatsApp Image 2026-11-02 at 11 19 18 PM" src="https://github.com/user-attachments/assets/aa585366-0fa7-4844-b882-c1d66e3ec702" />
 
+### Diagrama Entidad-Relación (ERD)
+<img width="1793" height="1456" alt="DIAGRAMA EFI" src="https://github.com/user-attachments/assets/d17fa256-f8ef-40fe-bb61-33fc0d646717" />
 
 ---
 
