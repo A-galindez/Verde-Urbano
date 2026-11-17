@@ -21,3 +21,6 @@ db.sqlite3-journal
 *.sqlite3-shm
 backend/datos_verde_urbano.json
 backend/articulos_render_respaldo.json
+
+# Respaldos descargados de Render
+backend/respaldos_render/
