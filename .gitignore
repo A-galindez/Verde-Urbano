@@ -18,3 +18,4 @@ datos_verde_urbano.json
 .env
 .env.*
 !.env.example
+backend/articulos_render_respaldo.json
