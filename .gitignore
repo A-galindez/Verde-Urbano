@@ -14,3 +14,14 @@ db.sqlite3-journal
 .env
 .env.*
 !.env.example
+# Respaldos locales
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+backend/datos_verde_urbano.json
+backend/articulos_render_respaldo.json
+
+# Respaldos descargados de Render
+backend/respaldos_render/
+backend/datos_verde_urbano_limpios.json
